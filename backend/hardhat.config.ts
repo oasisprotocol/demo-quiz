@@ -124,13 +124,12 @@ task('status')
 task('pushQuestion')
   .addPositionalParam('address', 'contract address')
   .addPositionalParam('question', 'the question')
-  .addPositionalParam('correctChoice', 'index of the correct choice (starting from 0)')
   .addVariadicPositionalParam('choices', 'possible choices')
   .setAction(async (args, hre) => {
     await hre.run('compile');
 
     let quiz = await hre.ethers.getContractAt('Quiz', args.address);
-    const tx = await quiz.pushQuestion(args.question, args.choices, args.correctChoice);
+    const tx = await quiz.pushQuestion(args.question, args.choices);
     const receipt = await tx.wait();
     console.log(`Success! Transaction hash: ${receipt!.hash}`);
   });
@@ -142,7 +141,7 @@ task('clearQuestions')
     await hre.run('compile');
 
     let quiz = await hre.ethers.getContractAt('Quiz', args.address);
-    const tx = await quiz.clearQuestions(args.question, args.choices, args.correctChoice);
+    const tx = await quiz.clearQuestions();
     const receipt = await tx.wait();
     console.log(`Success! Transaction hash: ${receipt!.hash}`);
   });
@@ -157,7 +156,7 @@ task('setQuestion')
 
     let quiz = await hre.ethers.getContractAt('Quiz', args.address);
     const questions = JSON.parse(await fs.readFile(args.questionsFile,'utf8'));
-    const tx = await quiz.setQuestion(args.number, questions[parseInt(args.number)].question, questions[parseInt(args.number)].choices, questions[parseInt(args.number)].correctChoice);
+    const tx = await quiz.setQuestion(args.number, questions[parseInt(args.number)].question, questions[parseInt(args.number)].choices);
     const receipt = await tx.wait();
     console.log(`Updated question ${questions[parseInt(args.number)].question}. Transaction hash: ${receipt!.hash}`);
   });
@@ -172,7 +171,7 @@ task('pushQuestions')
     let quiz = await hre.ethers.getContractAt('Quiz', args.address);
     const questions = JSON.parse(await fs.readFile(args.questionsFile,'utf8'));
     for (var i=0; i<questions.length; i++) {
-      const tx = await quiz.pushQuestion(questions[i].question, questions[i].choices, questions[i].correctChoice);
+      const tx = await quiz.pushQuestion(questions[i].question, questions[i].choices);
       const receipt = await tx.wait();
       console.log(`Added question ${questions[i].question}. Transaction hash: ${receipt!.hash}`);
     }

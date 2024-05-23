@@ -113,6 +113,12 @@ Checklist after deploying a production-ready quiz:
    npx hardhat getCoupons 0x385cAE1F3afFC50097Ca33f639184f00856928Ff --network sapphire-testnet
    ```
 
+Check out other hardhat tasks that will help you manage the quiz:
+
+```shell
+npx hardhat help
+```
+
 ## Frontend
 
 After you compiled the backend, updated `.env.development` with the
