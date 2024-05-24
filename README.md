@@ -107,7 +107,7 @@ Checklist after deploying a production-ready quiz:
    npx hardhat status 0x385cAE1F3afFC50097Ca33f639184f00856928Ff --network sapphire-testnet
    ```
    
-   You can also obtain details on spent coupons as follows:
+   You can also obtain details on spent coupons as follows (may take a while):
 
    ```shell
    npx hardhat getCoupons 0x385cAE1F3afFC50097Ca33f639184f00856928Ff --network sapphire-testnet

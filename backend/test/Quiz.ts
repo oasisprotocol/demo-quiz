@@ -56,8 +56,8 @@ describe("Quiz", function () {
 
     expect(await quiz.getQuestions("")).to.deep.equal(
       [
-        ["What's the European highest peak?", ["Sv. Jošt nad Kranjem", "Triglav", "Mont Blanc", "Mount Everest", "Saint Moritz"]],
-        ["When was the Bitcoin whitepaper published?", ["2012", "2009", "2023", "2006", "2014", "2000"]],
+        ["What's the European highest peak?", ["Mont Blanc", "Triglav", "Mount Everest", "Saint Moritz", "Sv. Jošt nad Kranjem"]],
+        ["When was the Bitcoin whitepaper published?", ["2009", "2000", "2006", "2012", "2014", "2023"]],
       ]);
 
     await quiz.clearQuestions();
@@ -66,8 +66,8 @@ describe("Quiz", function () {
     await addQuestions(quiz);
     expect(await quiz.getQuestions("")).to.deep.equal(
       [
-        ["What's the European highest peak?", ["Sv. Jošt nad Kranjem", "Triglav", "Mont Blanc", "Mount Everest", "Saint Moritz"]],
-        ["When was the Bitcoin whitepaper published?", ["2012", "2009", "2023", "2006", "2014", "2000"]],
+        ["What's the European highest peak?", ["Mont Blanc", "Triglav", "Mount Everest", "Saint Moritz", "Sv. Jošt nad Kranjem"]],
+        ["When was the Bitcoin whitepaper published?", ["2009", "2000", "2006", "2012", "2014", "2023"]],
       ]);
   });
 
@@ -116,8 +116,10 @@ describe("Quiz", function () {
 
   it("Should set reward", async function () {
     const {quiz} = await deployQuiz();
+    expect(await quiz.isReward()).to.equal(false);
     await setReward(quiz);
     expect(await quiz.getReward()).to.equal(10_000_000_000_000_000_000n);
+    expect(await quiz.isReward()).to.equal(true);
   });
 
   it("Should reclaim funds", async function () {

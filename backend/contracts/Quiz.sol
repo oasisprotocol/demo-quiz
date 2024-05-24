@@ -94,9 +94,14 @@ contract Quiz {
         _reward = reward;
     }
 
-    // Sets the payout reward for correctly solving the quiz.
-    function getReward() external view onlyOwner returns (uint){
+    // Gets the payout reward for correctly solving the quiz.
+    function getReward() external view onlyOwner returns (uint) {
         return _reward;
+    }
+
+    // Returns true, if there is any kind of a reward for solving the quiz.
+    function isReward() external view returns (bool) {
+        return _reward!=0;
     }
 
     // Registers coupons eligible for solving the quiz and claiming the reward.
@@ -177,6 +182,11 @@ contract Quiz {
 
     // Find and return the questions providing valid coupon.
     function getQuestions(string memory coupon) external view validCoupon(coupon) returns (QuizQuestion[] memory) {
+        // Do not randomize answers, if the owner is fetching them.
+        if (msg.sender == _owner) {
+            return _questions;
+        }
+
         // Randomize question choices.
         QuizQuestion[] memory qs = new QuizQuestion[](_questions.length);
         uint8[] memory pv = getPermutationVector(coupon);

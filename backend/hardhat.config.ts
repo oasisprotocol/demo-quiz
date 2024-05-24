@@ -91,14 +91,17 @@ task('status')
   .setAction(async (args, hre) => {
     await hre.run('compile');
 
-    console.log(`Status for quiz contract ${args.address}`);
+    console.log(`Status of quiz contract ${args.address}`);
     const quiz = await hre.ethers.getContractAt('Quiz', args.address);
 
     // Questions
     const questions = await quiz.getQuestions("");
     console.log(`Questions (counting from 0):`);
     for (let i=0; i<questions.length; i++) {
-      console.log(`  ${i}. ${questions[i].question} (${questions[i].choices})`);
+      console.log(`  ${i}. ${questions[i].question}`);
+      for (let j=0; j<questions[i].choices.length; j++) {
+        console.log(`     ${String.fromCharCode(97+j)}) ${questions[i].choices[j]}`);
+      }
     }
 
     // Coupons
