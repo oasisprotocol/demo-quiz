@@ -16,12 +16,12 @@ describe("Quiz", function () {
   }
 
   async function addQuestions(quiz: Quiz) {
-    await quiz.pushQuestion("What's the European highest peak?", ["Mont Blanc", "Triglav", "Mount Everest", "Saint Moritz", "Sv. Jošt nad Kranjem"]);
-    await quiz.pushQuestion("When was the Bitcoin whitepaper published?", ["2009", "2000", "2006", "2012", "2014", "2023"]);
+    await quiz.addQuestion("What's the European highest peak?", ["Mont Blanc", "Triglav", "Mount Everest", "Saint Moritz", "Sv. Jošt nad Kranjem"]);
+    await quiz.addQuestion("When was the Bitcoin whitepaper published?", ["2009", "2000", "2006", "2012", "2014", "2023"]);
   }
 
   async function addOneQuestion(quiz: Quiz) {
-    await quiz.pushQuestion("What's the European highest peak?", ["Mont Blanc"]);
+    await quiz.addQuestion("What's the European highest peak?", ["Mont Blanc"]);
   }
 
   async function addCoupons(quiz: Quiz) {

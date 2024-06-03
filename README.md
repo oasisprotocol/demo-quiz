@@ -71,7 +71,7 @@ Checklist after deploying a production-ready quiz:
 1. Push questions. Example:
 
    ```shell
-   npx hardhat pushQuestions 0x385cAE1F3afFC50097Ca33f639184f00856928Ff test-questions.json --network sapphire-testnet
+   npx hardhat addQuestions 0x385cAE1F3afFC50097Ca33f639184f00856928Ff test-questions.json --network sapphire-testnet
    ```
 
 2. Add coupons. Example:

@@ -124,7 +124,7 @@ task('status')
   });
 
 // Add a new question.
-task('pushQuestion')
+task('addQuestion')
   .addPositionalParam('address', 'contract address')
   .addPositionalParam('question', 'the question')
   .addVariadicPositionalParam('choices', 'possible choices')
@@ -132,7 +132,7 @@ task('pushQuestion')
     await hre.run('compile');
 
     let quiz = await hre.ethers.getContractAt('Quiz', args.address);
-    const tx = await quiz.pushQuestion(args.question, args.choices);
+    const tx = await quiz.addQuestion(args.question, args.choices);
     const receipt = await tx.wait();
     console.log(`Success! Transaction hash: ${receipt!.hash}`);
   });
@@ -165,7 +165,7 @@ task('setQuestion')
   });
 
 // Add a new question.
-task('pushQuestions')
+task('addQuestions')
   .addPositionalParam('address', 'contract address')
   .addPositionalParam('questionsFile', 'file containing questions in JSON format')
   .setAction(async (args, hre) => {
@@ -174,7 +174,7 @@ task('pushQuestions')
     let quiz = await hre.ethers.getContractAt('Quiz', args.address);
     const questions = JSON.parse(await fs.readFile(args.questionsFile,'utf8'));
     for (var i=0; i<questions.length; i++) {
-      const tx = await quiz.pushQuestion(questions[i].question, questions[i].choices);
+      const tx = await quiz.addQuestion(questions[i].question, questions[i].choices);
       const receipt = await tx.wait();
       console.log(`Added question ${questions[i].question}. Transaction hash: ${receipt!.hash}`);
     }

@@ -71,7 +71,7 @@ contract Quiz {
     }
 
     // Adds an new question with given choices and the correct one.
-    function pushQuestion(string memory question, string[] memory choices) external onlyOwner {
+    function addQuestion(string memory question, string[] memory choices) external onlyOwner {
         _questions.push(QuizQuestion(question, choices));
         _totalChoices += choices.length;
     }
