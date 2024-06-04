@@ -1,12 +1,13 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
 import {Quiz, Quiz__factory} from "../typechain-types";
-import {getDefaultProvider, JsonRpcProvider} from "ethers";
+import {getDefaultProvider, JsonRpcProvider, toBigInt} from "ethers";
 
 describe("Quiz", function () {
   async function deployQuiz() {
     const Quiz_factory = await ethers.getContractFactory("Quiz");
     const quiz = await Quiz_factory.deploy({
+        gasLimit: 3_000_000, // https://github.com/oasisprotocol/sapphire-paratime/issues/319
         value: ethers.parseEther("10.00"),
       }
     );
@@ -15,8 +16,12 @@ describe("Quiz", function () {
   }
 
   async function addQuestions(quiz: Quiz) {
-    await quiz.pushQuestion("What's the European highest peak?", ["Triglav", "Mount Everest", "Mont Blanc"], 2);
-    await quiz.pushQuestion("When was the Bitcoin whitepaper published?", ["2009", "2006", "2012"], 0);
+    await quiz.addQuestion("What's the European highest peak?", ["Mont Blanc", "Triglav", "Mount Everest", "Saint Moritz", "Sv. Jošt nad Kranjem"]);
+    await quiz.addQuestion("When was the Bitcoin whitepaper published?", ["2009", "2000", "2006", "2012", "2014", "2023"]);
+  }
+
+  async function addOneQuestion(quiz: Quiz) {
+    await quiz.addQuestion("What's the European highest peak?", ["Mont Blanc"]);
   }
 
   async function addCoupons(quiz: Quiz) {
@@ -26,7 +31,7 @@ describe("Quiz", function () {
   async function setGaslessKeypair(quiz: Quiz) {
     const addr = ethers.getAddress("0xDce075E1C39b1ae0b75D554558b6451A226ffe00");
     const sk = Uint8Array.from(Buffer.from("c0e43d8755f201b715fd5a9ce0034c568442543ae0a0ee1aec2985ffe40edb99", 'hex'));
-    const nonce = 0;
+    const nonce = await ethers.provider.getTransactionCount("0xDce075E1C39b1ae0b75D554558b6451A226ffe00");
     await quiz.setGaslessKeyPair(addr, sk, nonce);
   }
 
@@ -34,6 +39,16 @@ describe("Quiz", function () {
     await quiz.setReward(ethers.parseEther("10.00"));
   }
 
+  it("Should fund contract", async function () {
+    const {quiz} = await deployQuiz();
+    const tx = await (await ethers.getSigners())[0].sendTransaction({
+      from: (await ethers.getSigners())[0].address,
+      to: await quiz.getAddress(),
+      value: ethers.parseEther("10.00"),
+    });
+    const receipt = await tx.wait();
+    expect(receipt!.status).to.equal(1);
+  })
 
   it("Should add questions", async function () {
     const {quiz} = await deployQuiz();
@@ -41,8 +56,8 @@ describe("Quiz", function () {
 
     expect(await quiz.getQuestions("")).to.deep.equal(
       [
-        ["What's the European highest peak?", ["Triglav", "Mount Everest", "Mont Blanc"]],
-        ["When was the Bitcoin whitepaper published?", ["2009", "2006", "2012"]],
+        ["What's the European highest peak?", ["Mont Blanc", "Triglav", "Mount Everest", "Saint Moritz", "Sv. Jošt nad Kranjem"]],
+        ["When was the Bitcoin whitepaper published?", ["2009", "2000", "2006", "2012", "2014", "2023"]],
       ]);
 
     await quiz.clearQuestions();
@@ -51,8 +66,8 @@ describe("Quiz", function () {
     await addQuestions(quiz);
     expect(await quiz.getQuestions("")).to.deep.equal(
       [
-        ["What's the European highest peak?", ["Triglav", "Mount Everest", "Mont Blanc"]],
-        ["When was the Bitcoin whitepaper published?", ["2009", "2006", "2012"]],
+        ["What's the European highest peak?", ["Mont Blanc", "Triglav", "Mount Everest", "Saint Moritz", "Sv. Jošt nad Kranjem"]],
+        ["When was the Bitcoin whitepaper published?", ["2009", "2000", "2006", "2012", "2014", "2023"]],
       ]);
   });
 
@@ -76,7 +91,7 @@ describe("Quiz", function () {
   });
 
   it("User should get questions", async function () {
-    if ((await ethers.provider.getNetwork()).chainId != 1337) { // This test fails with current Sapphire wrapper due to signer!=caller bug.
+    if ((await ethers.provider.getNetwork()).chainId != 1337) { // https://github.com/oasisprotocol/sapphire-paratime/issues/197
       this.skip();
     }
 
@@ -89,19 +104,22 @@ describe("Quiz", function () {
     expect(await userQuiz.getQuestions("testCoupon1")).to.have.lengthOf(2);
   });
 
-  it("Should set Gasless keypair", async function () {
+  it("Should set gasless keypair", async function () {
     const {quiz} = await deployQuiz();
     await setGaslessKeypair(quiz);
     const kp = await quiz.getGaslessKeyPair();
     expect(kp[0]).to.equal("0xDce075E1C39b1ae0b75D554558b6451A226ffe00");
     expect(kp[1]).to.equal("0xc0e43d8755f201b715fd5a9ce0034c568442543ae0a0ee1aec2985ffe40edb99");
-    expect(kp[2]).to.equal(0n);
+    const nonce = await ethers.provider.getTransactionCount("0xDce075E1C39b1ae0b75D554558b6451A226ffe00");
+    expect(kp[2]).to.equal(toBigInt(nonce));
   });
 
   it("Should set reward", async function () {
     const {quiz} = await deployQuiz();
+    expect(await quiz.isReward()).to.equal(false);
     await setReward(quiz);
     expect(await quiz.getReward()).to.equal(10_000_000_000_000_000_000n);
+    expect(await quiz.isReward()).to.equal(true);
   });
 
   it("Should reclaim funds", async function () {
@@ -118,31 +136,56 @@ describe("Quiz", function () {
   });
 
   it("User should check answers", async function () {
+    if ((await ethers.provider.getNetwork()).chainId != 1337) { // Requires non-randomized seed.
+      this.skip();
+    }
+
     const {quiz} = await deployQuiz();
     await addQuestions(quiz);
     await addCoupons(quiz);
 
-    expect(await quiz.checkAnswers("testCoupon1", [0, 0], ethers.ZeroAddress)).to.deep.equal([[false, true], "0x"]);
+    expect(await quiz.checkAnswers("testCoupon1", [0, 0], ethers.ZeroAddress)).to.deep.equal([[false, false], "0x"]);
     expect(await quiz.checkAnswers("testCoupon1", [0, 1], ethers.ZeroAddress)).to.deep.equal([[false, false], "0x"]);
     expect(await quiz.checkAnswers("testCoupon1", [0, 2], ethers.ZeroAddress)).to.deep.equal([[false, false], "0x"]);
-    expect(await quiz.checkAnswers("testCoupon1", [1, 0], ethers.ZeroAddress)).to.deep.equal([[false, true], "0x"]);
+    expect(await quiz.checkAnswers("testCoupon1", [0, 3], ethers.ZeroAddress)).to.deep.equal([[false, false], "0x"]);
+    expect(await quiz.checkAnswers("testCoupon1", [0, 4], ethers.ZeroAddress)).to.deep.equal([[false, true], "0x"]);
+    expect(await quiz.checkAnswers("testCoupon1", [0, 5], ethers.ZeroAddress)).to.deep.equal([[false, false], "0x"]);
+    expect(await quiz.checkAnswers("testCoupon1", [1, 0], ethers.ZeroAddress)).to.deep.equal([[false, false], "0x"]);
     expect(await quiz.checkAnswers("testCoupon1", [1, 1], ethers.ZeroAddress)).to.deep.equal([[false, false], "0x"]);
     expect(await quiz.checkAnswers("testCoupon1", [1, 2], ethers.ZeroAddress)).to.deep.equal([[false, false], "0x"]);
-    expect(await quiz.checkAnswers("testCoupon1", [2, 0], ethers.ZeroAddress)).to.deep.equal([[true, true], "0x"]);
+    expect(await quiz.checkAnswers("testCoupon1", [1, 3], ethers.ZeroAddress)).to.deep.equal([[false, false], "0x"]);
+    expect(await quiz.checkAnswers("testCoupon1", [1, 4], ethers.ZeroAddress)).to.deep.equal([[false, true], "0x"]);
+    expect(await quiz.checkAnswers("testCoupon1", [1, 5], ethers.ZeroAddress)).to.deep.equal([[false, false], "0x"]);
+    expect(await quiz.checkAnswers("testCoupon1", [2, 0], ethers.ZeroAddress)).to.deep.equal([[true, false], "0x"]);
     expect(await quiz.checkAnswers("testCoupon1", [2, 1], ethers.ZeroAddress)).to.deep.equal([[true, false], "0x"]);
     expect(await quiz.checkAnswers("testCoupon1", [2, 2], ethers.ZeroAddress)).to.deep.equal([[true, false], "0x"]);
+    expect(await quiz.checkAnswers("testCoupon1", [2, 3], ethers.ZeroAddress)).to.deep.equal([[true, false], "0x"]);
+    expect(await quiz.checkAnswers("testCoupon1", [2, 4], ethers.ZeroAddress)).to.deep.equal([[true, true], "0x"]);
+    expect(await quiz.checkAnswers("testCoupon1", [2, 5], ethers.ZeroAddress)).to.deep.equal([[true, false], "0x"]);
+    expect(await quiz.checkAnswers("testCoupon1", [3, 0], ethers.ZeroAddress)).to.deep.equal([[false, false], "0x"]);
+    expect(await quiz.checkAnswers("testCoupon1", [3, 1], ethers.ZeroAddress)).to.deep.equal([[false, false], "0x"]);
+    expect(await quiz.checkAnswers("testCoupon1", [3, 2], ethers.ZeroAddress)).to.deep.equal([[false, false], "0x"]);
+    expect(await quiz.checkAnswers("testCoupon1", [3, 3], ethers.ZeroAddress)).to.deep.equal([[false, false], "0x"]);
+    expect(await quiz.checkAnswers("testCoupon1", [3, 4], ethers.ZeroAddress)).to.deep.equal([[false, true], "0x"]);
+    expect(await quiz.checkAnswers("testCoupon1", [3, 5], ethers.ZeroAddress)).to.deep.equal([[false, false], "0x"]);
+    expect(await quiz.checkAnswers("testCoupon1", [4, 0], ethers.ZeroAddress)).to.deep.equal([[false, false], "0x"]);
+    expect(await quiz.checkAnswers("testCoupon1", [4, 1], ethers.ZeroAddress)).to.deep.equal([[false, false], "0x"]);
+    expect(await quiz.checkAnswers("testCoupon1", [4, 2], ethers.ZeroAddress)).to.deep.equal([[false, false], "0x"]);
+    expect(await quiz.checkAnswers("testCoupon1", [4, 3], ethers.ZeroAddress)).to.deep.equal([[false, false], "0x"]);
+    expect(await quiz.checkAnswers("testCoupon1", [4, 4], ethers.ZeroAddress)).to.deep.equal([[false, true], "0x"]);
+    expect(await quiz.checkAnswers("testCoupon1", [4, 5], ethers.ZeroAddress)).to.deep.equal([[false, false], "0x"]);
   });
 
   it("User should receive payout certificate", async function () {
-    if ((await ethers.provider.getNetwork()).chainId == 1337) { // Requires Sapphire
+    if ((await ethers.provider.getNetwork()).chainId == 1337) { // Requires Sapphire precompiles.
       this.skip();
     }
     const {quiz} = await deployQuiz();
-    await addQuestions(quiz);
+    await addOneQuestion(quiz);
     await addCoupons(quiz);
     await setReward(quiz);
 
-    const [_correctVector, payoutCertificate] = await quiz.checkAnswers("testCoupon1", [2, 0], (await ethers.getSigners())[1].address);
+    const [_correctVector, payoutCertificate] = await quiz.checkAnswers("testCoupon1", [0], (await ethers.getSigners())[1].address);
     expect(payoutCertificate).to.not.equal("0x");
 
     const balance1 = await ethers.provider.getBalance((await ethers.getSigners())[1].address);
@@ -156,11 +199,11 @@ describe("Quiz", function () {
   });
 
   it("User should send gasless transaction", async function () {
-    if ((await ethers.provider.getNetwork()).chainId == 1337) { // Requires Sapphire
+    if ((await ethers.provider.getNetwork()).chainId == 1337) { // Requires Sapphire precompiles.
       this.skip();
     }
     const {quiz} = await deployQuiz();
-    await addQuestions(quiz);
+    await addOneQuestion(quiz);
     await addCoupons(quiz);
     await setReward(quiz);
     await setGaslessKeypair(quiz);
@@ -174,7 +217,7 @@ describe("Quiz", function () {
     expect(fundingReceipt).to.not.equal(null);
     expect(fundingReceipt!.status).to.be.equal(1);
 
-    const [_correctVector, rawTx] = await quiz.checkAnswers("testCoupon1", [2, 0], (await ethers.getSigners())[1].address);
+    const [_correctVector, rawTx] = await quiz.checkAnswers("testCoupon1", [0], (await ethers.getSigners())[1].address);
     expect(rawTx).to.not.equal("0x");
 
     const balance1 = await ethers.provider.getBalance((await ethers.getSigners())[1].address);

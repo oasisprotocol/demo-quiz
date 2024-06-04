@@ -10,6 +10,7 @@ const quiz = useQuiz();
 
 const errors = ref<string[]>([]);
 const quizCoupon = ref<string>("");
+const isReward = ref<Boolean>(false);
 const author = ref('');
 const isLoading = ref(true);
 
@@ -19,6 +20,7 @@ function handleError(error: Error, errorMessage: string) {
 }
 
 onMounted(async () => {
+  isReward.value = await quiz.value!.isReward();
 });
 </script>
 
@@ -56,7 +58,7 @@ onMounted(async () => {
       <AppButton variant="primary">Confirm</AppButton>
     </RouterLink>
 
-    <p class="text-white mt-5 mb-20">
+    <p class="text-white mt-5 mb-20" v-if="isReward">
       When you solve the quiz, you will receive a <b>100 ROSE</b> reward!
       You can use the tokens to
       <a href="https://docs.oasis.io/dapp/sapphire/quickstart" target="_blank">develop a dApp</a> 🔨

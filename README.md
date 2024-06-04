@@ -71,7 +71,7 @@ Checklist after deploying a production-ready quiz:
 1. Push questions. Example:
 
    ```shell
-   npx hardhat pushQuestions 0x385cAE1F3afFC50097Ca33f639184f00856928Ff test-questions.json --network sapphire-testnet
+   npx hardhat addQuestions 0x385cAE1F3afFC50097Ca33f639184f00856928Ff test-questions.json --network sapphire-testnet
    ```
 
 2. Add coupons. Example:
@@ -107,11 +107,17 @@ Checklist after deploying a production-ready quiz:
    npx hardhat status 0x385cAE1F3afFC50097Ca33f639184f00856928Ff --network sapphire-testnet
    ```
    
-   You can also obtain details on spent coupons as follows:
+   You can also obtain details on spent coupons as follows (may take a while):
 
    ```shell
    npx hardhat getCoupons 0x385cAE1F3afFC50097Ca33f639184f00856928Ff --network sapphire-testnet
    ```
+
+Check out other hardhat tasks that will help you manage the quiz:
+
+```shell
+npx hardhat help
+```
 
 ## Frontend
 

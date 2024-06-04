@@ -16,7 +16,11 @@ contract Quiz {
     uint256 public constant COUPON_REMOVED = type(uint256).max-2;
 
     struct QuizQuestion {
+        // Question.
         string question;
+
+        // List of possible answers. The first answer is always the correct one.
+        // Answers will be randomized per-user.
         string[] choices;
     }
 
@@ -40,8 +44,8 @@ contract Quiz {
     bytes32 _key;
     // List of questions.
     QuizQuestion[] _questions;
-    // List of correct answer choices.
-    uint8[] _questionsCorrectChoices;
+    // Total number of choices. Used for generating the permutation vector.
+    uint _totalChoices;
     // Status of coupons. COUPON_VALID for valid coupon, COUPON_REMOVED for removed, block number for spent.
     mapping(string => uint256) _coupons;
     // Stores all coupons that ever existed. Used for traversing the mapping.
@@ -67,20 +71,22 @@ contract Quiz {
     }
 
     // Adds an new question with given choices and the correct one.
-    function pushQuestion(string memory question, string[] memory choices, uint8 correctChoice) external onlyOwner {
+    function addQuestion(string memory question, string[] memory choices) external onlyOwner {
         _questions.push(QuizQuestion(question, choices));
-        _questionsCorrectChoices.push(correctChoice);
+        _totalChoices += choices.length;
     }
 
     // Removes all questions.
     function clearQuestions() external onlyOwner {
         delete _questions;
+        _totalChoices = 0;
     }
 
     // Updates the existing question.
-    function setQuestion(uint questionIndex, string memory question, string[] memory choices, uint8 correctChoice) external onlyOwner {
+    function setQuestion(uint questionIndex, string memory question, string[] memory choices) external onlyOwner {
+        _totalChoices -= _questions[questionIndex].choices.length;
         _questions[questionIndex] = QuizQuestion(question, choices);
-        _questionsCorrectChoices[questionIndex] = correctChoice;
+        _totalChoices += choices.length;
     }
 
     // Sets the payout reward for correctly solving the quiz.
@@ -88,9 +94,14 @@ contract Quiz {
         _reward = reward;
     }
 
-    // Sets the payout reward for correctly solving the quiz.
-    function getReward() external view onlyOwner returns (uint){
+    // Gets the payout reward for correctly solving the quiz.
+    function getReward() external view onlyOwner returns (uint) {
         return _reward;
+    }
+
+    // Returns true, if there is any kind of a reward for solving the quiz.
+    function isReward() external view returns (bool) {
+        return _reward!=0;
     }
 
     // Registers coupons eligible for solving the quiz and claiming the reward.
@@ -128,9 +139,69 @@ contract Quiz {
         return (cnt, _allCoupons.length);
     }
 
+    // Generates the permutation vector for all question choices.
+    function getPermutationVector(string memory coupon) private view returns (uint8[] memory) {
+        uint8[] memory pv = new uint8[](_totalChoices);
+
+        uint k=0; // Number of processed choices in total.
+        for (uint i=0; i<_questions.length; i++) {
+            bytes32 seed = keccak256(abi.encode(_key, coupon, i));
+            // Enumerate choices.
+            for (uint8 j=0; j<_questions[i].choices.length; j++) {
+                pv[k+j] = j;
+            }
+            // Permute choices based on the seed.
+            for (uint j=0; j<_questions[i].choices.length; j++) {
+                uint8 permChoiceIdx = uint8(uint8(seed[j%seed.length])%_questions[i].choices.length);
+                // Swap permChoiceIdx with j.
+                uint8 tmp = pv[k+permChoiceIdx];
+                pv[k+permChoiceIdx] = pv[k+j];
+                pv[k+j] = tmp;
+            }
+            k+=_questions[i].choices.length;
+        }
+        return pv;
+    }
+
+    // Return the index of the correct choice for all questions.
+    function getCorrectChoices(string memory coupon) private view returns (uint8[] memory) {
+        uint8[] memory pv = getPermutationVector(coupon);
+        uint8[] memory correctChoices = new uint8[](_questions.length);
+        uint k=0; // Number of processed choices in total.
+        for (uint i=0; i<_questions.length; i++) {
+            for (uint8 j=0;j<_questions[i].choices.length; j++) {
+                if (pv[k+j]==0) {
+                    correctChoices[i] = j;
+                    break;
+                }
+            }
+            k+=_questions[i].choices.length;
+        }
+        return correctChoices;
+    }
+
     // Find and return the questions providing valid coupon.
     function getQuestions(string memory coupon) external view validCoupon(coupon) returns (QuizQuestion[] memory) {
-        return _questions;
+        // Do not randomize answers, if the owner is fetching them.
+        if (msg.sender == _owner) {
+            return _questions;
+        }
+
+        // Randomize question choices.
+        QuizQuestion[] memory qs = new QuizQuestion[](_questions.length);
+        uint8[] memory pv = getPermutationVector(coupon);
+
+        uint k=0; // Number of processed choices in total.
+        for (uint i=0; i<_questions.length; i++) {
+            string[] memory newChoices = new string[](_questions[i].choices.length);
+            for (uint j=0; j<_questions[i].choices.length; j++) {
+                newChoices[j] = _questions[i].choices[pv[k+j]];
+            }
+            qs[i] = QuizQuestion(_questions[i].question, newChoices);
+            k+=_questions[i].choices.length;
+        }
+
+        return qs;
     }
 
     // Enable gasless mode by using the provided keypair.
@@ -143,15 +214,16 @@ contract Quiz {
         return (_kp.addr, _kp.secret, _kp.nonce);
     }
 
-    // Checks provided answers and returns the array of correct submissions.
+    // Check provided answers and return the array of correct submissions.
     // If all the answers are correct and the payout address is provided, returns a payout certificate that can be used to claim the reward.
     // Generates gasless transaction, if gasless keypair is set.
     function checkAnswers(string memory coupon, uint8[] memory answers, address payoutAddr) external view validCoupon(coupon) returns (bool[] memory, bytes memory) {
         require(answers.length == _questions.length, errWrongNumberOfAnswers);
         bool allCorrect = true;
         bool[] memory correctVector = new bool[](_questions.length);
+        uint8[] memory questionsCorrectChoices = getCorrectChoices(coupon);
         for (uint i=0; i< _questions.length; i++) {
-            bool answerCorrect = (_questionsCorrectChoices[i]==answers[i]);
+            bool answerCorrect = (questionsCorrectChoices[i]==answers[i]);
             correctVector[i] = answerCorrect;
             allCorrect = (allCorrect && answerCorrect);
         }

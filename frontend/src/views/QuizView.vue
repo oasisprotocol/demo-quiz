@@ -30,6 +30,7 @@ const address = ref('');
 const couponValid = ref<Boolean>(false);
 const answersChecked = ref<Boolean>(false);
 const answersCorrect = ref<Boolean>(false);
+const isReward = ref<Boolean>(false);
 const rewardClaimed = ref<Boolean>(false);
 
 interface Questions {
@@ -82,6 +83,7 @@ async function fetchQuestions(): Promise<void> {
   try {
     isLoading.value = true;
     questions.value = await quiz.value!.getQuestions(props.coupon);
+    isReward.value = await quiz.value!.isReward();
     selectedChoices.value = Array(questions.value.length); // prepare an array of undefined values until the answer is selected.
     couponValid.value = true;
   } catch(e) {
@@ -209,35 +211,37 @@ onMounted(async () => {
       <h2 class="text-2xl text-white text-base mb-5 mt-10">You Solved the Quiz!</h2>
     </SuccessInfo>
 
-    <p class="text-white text-base mb-5 mt-10">
-      To claim the reward, enter your account address below.
-      You will receive ROSE on the <a href="https://docs.oasis.io/dapp/sapphire/#chain-information" target="_blank">Oasis Sapphire Mainnet</a> chain.
-    </p>
-    <form @submit="claimReward">
-      <div class="form-group">
-        <input
-            type="text"
-            id="addressText"
-            class="peer"
-            placeholder=" "
-            v-model="address"
-            pattern="^(0x)?[0-9a-fA-F]{40}$"
-            required
-        />
-        <label
-            for="addressText"
-            class="peer-focus:text-primaryDark peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-5"
-        >
-          Your address (0x...):
-          <span class="text-red-500">*</span>
-        </label>
-      </div>
+    <section v-if="isReward">
+      <p class="text-white text-base mb-5 mt-10">
+        To claim the reward, enter your account address below.
+        You will receive ROSE on the <a href="https://docs.oasis.io/dapp/sapphire/#chain-information" target="_blank">Oasis Sapphire Mainnet</a> chain.
+      </p>
+      <form @submit="claimReward">
+        <div class="form-group">
+          <input
+              type="text"
+              id="addressText"
+              class="peer"
+              placeholder=" "
+              v-model="address"
+              pattern="^(0x)?[0-9a-fA-F]{40}$"
+              required
+          />
+          <label
+              for="addressText"
+              class="peer-focus:text-primaryDark peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-5"
+          >
+            Your address (0x...):
+            <span class="text-red-500">*</span>
+          </label>
+        </div>
 
-      <AppButton class="mb-20 no-capitalize" type="submit" variant="primary" :disabled="isClaimingReward">
-        <span class="normal-case" v-if="isClaimingReward">Generating transaction and sending reward…</span>
-        <span class="normal-case" v-else>Claim your reward</span>
-      </AppButton>
-    </form>
+        <AppButton class="mb-20 no-capitalize" type="submit" variant="primary" :disabled="isClaimingReward">
+          <span class="normal-case" v-if="isClaimingReward">Generating transaction and sending reward…</span>
+          <span class="normal-case" v-else>Claim your reward</span>
+        </AppButton>
+      </form>
+    </section>
   </section>
   <section v-if="rewardClaimed">
     <SuccessInfo class="mb-20">
