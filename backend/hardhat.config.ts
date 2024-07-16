@@ -10,7 +10,71 @@ import 'hardhat-watcher';
 import { TASK_COMPILE } from 'hardhat/builtin-tasks/task-names';
 import { HardhatUserConfig, task } from 'hardhat/config';
 import 'solidity-coverage';
-import {ethers} from "hardhat";
+
+
+
+async function deployContract(hre: typeof import('hardhat'), contractName: string, url: string) {
+  const { ethers } = hre;
+  const uwProvider = new JsonRpcProvider(url);
+  const contractFactory = await ethers.getContractFactory(contractName, new hre.ethers.Wallet(accounts[0], uwProvider));
+  const contract = await contractFactory.deploy();
+  await contract.waitForDeployment();
+  console.log(`${contractName} deployed at address: ${await contract.getAddress()}`);
+  return contract;
+}
+
+async function addQuestions(quizContract: any, questionsFile: string) {
+  const questions = JSON.parse(await fs.readFile(questionsFile, 'utf8'));
+  for (const question of questions) {
+    const tx = await quizContract.addQuestion(question.question, question.choices);
+    const receipt = await tx.wait();
+    console.log(`Added question: ${question.question}. Transaction hash: ${receipt!.hash}`);
+  }
+}
+
+async function addCoupons(quizContract: any, couponsFile: string) {
+  const coupons = (await fs.readFile(couponsFile, 'utf8')).split('\n').filter(Boolean);
+  for (let i = 0; i < coupons.length; i += 20) {
+    const chunk = coupons.slice(i, i + 20);
+    const tx = await quizContract.addCoupons(chunk);
+    const receipt = await tx.wait();
+    console.log(`Added coupons: ${chunk}. Transaction hash: ${receipt!.hash}`);
+  }
+}
+
+async function setReward(hre: typeof import('hardhat'), quizContract: any, reward: string) {
+  const { ethers } = hre;
+  const tx = await quizContract.setReward(ethers.parseEther(reward));
+  const receipt = await tx.wait();
+  console.log(`Set reward to ${reward} ROSE. Transaction hash: ${receipt!.hash}`);
+}
+
+async function fundContract(hre: typeof import('hardhat'), quizContract: any, amount: string) {
+  const { ethers } = hre;
+  const tx = await (await ethers.getSigners())[0].sendTransaction({
+    to: await quizContract.getAddress(),
+    value: ethers.parseEther(amount),
+  });
+  const receipt = await tx.wait();
+  console.log(`Funded contract with ${amount} ROSE. Transaction hash: ${receipt!.hash}`);
+}
+
+async function fundGaslessAccount(hre: typeof import('hardhat'), gaslessAddress: string, amount: string) {
+  const { ethers } = hre;
+  const tx = await (await ethers.getSigners())[0].sendTransaction({
+    to: gaslessAddress,
+    value: ethers.parseEther(amount),
+  });
+  const receipt = await tx.wait();
+  console.log(`Funded gasless account with ${amount} ROSE. Transaction hash: ${receipt!.hash}`);
+}
+
+async function setGaslessKeyPair(quizContract: any, payerAddress: string, payerSecret: string, nonce: number) {
+  const tx = await quizContract.setGaslessKeyPair(payerAddress, payerSecret, nonce);
+  const receipt = await tx.wait();
+  console.log(`Set gasless keypair. Transaction hash: ${receipt!.hash}`);
+}
+
 
 const TASK_EXPORT_ABIS = 'export-abis';
 
@@ -44,14 +108,8 @@ task('deploy')
     await hre.run('compile');
 
     // For deployment unwrap the provider to enable contract verification.
-    const uwProvider = new JsonRpcProvider(hre.network.config.url);
-    const Quiz = await hre.ethers.getContractFactory('Quiz', new hre.ethers.Wallet(accounts[0], uwProvider));
-    const quiz = await Quiz.deploy();
-    await quiz.waitForDeployment();
-
-    console.log(`Quiz address: ${await quiz.getAddress()}`);
-    return quiz;
-});
+    const quiz = await deployContract(hre, 'Quiz', hre.network.config.url);
+    });
 
 // Get list of valid coupons and spent coupons with the block number.
 task('getCoupons')
@@ -94,7 +152,7 @@ task('status')
     console.log(`Status of quiz contract ${args.address}`);
     const quiz = await hre.ethers.getContractAt('Quiz', args.address);
 
-    // Questions
+    // Questions.
     const questions = await quiz.getQuestions("");
     console.log(`Questions (counting from 0):`);
     for (let i=0; i<questions.length; i++) {
@@ -104,7 +162,7 @@ task('status')
       }
     }
 
-    // Coupons
+    // Coupons.
     try {
         const coupons = await quiz.countCoupons();
         console.log(`Coupons Available/All: ${coupons[0]}/${coupons[1]}`)
@@ -137,7 +195,7 @@ task('addQuestion')
     console.log(`Success! Transaction hash: ${receipt!.hash}`);
   });
 
-// Add a new question.
+// Clear (delete) questions.
 task('clearQuestions')
   .addPositionalParam('address', 'contract address')
   .setAction(async (args, hre) => {
@@ -149,7 +207,7 @@ task('clearQuestions')
     console.log(`Success! Transaction hash: ${receipt!.hash}`);
   });
 
-// Add a new question.
+// Update existing question.
 task('setQuestion')
   .addPositionalParam('address', 'contract address')
   .addPositionalParam('number', 'question number (starting from 0)')
@@ -164,74 +222,46 @@ task('setQuestion')
     console.log(`Updated question ${questions[parseInt(args.number)].question}. Transaction hash: ${receipt!.hash}`);
   });
 
-// Add a new question.
+// Add questions from json file.
 task('addQuestions')
-  .addPositionalParam('address', 'contract address')
-  .addPositionalParam('questionsFile', 'file containing questions in JSON format')
-  .setAction(async (args, hre) => {
-    await hre.run('compile');
+.addPositionalParam('address', 'contract address')
+.addPositionalParam('questionsFile', 'file containing questions in JSON format')
+.setAction(async (args, hre) => {
+  const quiz = await hre.ethers.getContractAt('Quiz', args.address);
+  await addQuestions(quiz, args.questionsFile);
+});
 
-    let quiz = await hre.ethers.getContractAt('Quiz', args.address);
-    const questions = JSON.parse(await fs.readFile(args.questionsFile,'utf8'));
-    for (var i=0; i<questions.length; i++) {
-      const tx = await quiz.addQuestion(questions[i].question, questions[i].choices);
-      const receipt = await tx.wait();
-      console.log(`Added question ${questions[i].question}. Transaction hash: ${receipt!.hash}`);
-    }
-  });
-
-// Add a new question.
+// Add coupons.
 task('addCoupons')
-  .addPositionalParam('address', 'contract address')
-  .addPositionalParam('couponsFile', 'file containing coupons, one per line')
-  .setAction(async (args, hre) => {
-    await hre.run('compile');
+.addPositionalParam('address', 'contract address')
+.addPositionalParam('couponsFile', 'file containing coupons, one per line')
+.setAction(async (args, hre) => {
+  const quiz = await hre.ethers.getContractAt('Quiz', args.address);
+  await addCoupons(quiz, args.couponsFile);
+});
 
-    let quiz = await hre.ethers.getContractAt('Quiz', args.address);
-    const coupons = (await fs.readFile(args.couponsFile,'utf8')).split("\n");
-    // Trim last empty line.
-    if (coupons[coupons.length-1]=="") {
-      coupons.pop();
-    }
-    for (var i=0; i<coupons.length; i+=20) {
-      let cs = coupons.slice(i, i+20);
-      const tx = await quiz.addCoupons(cs);
-      const receipt = await tx.wait();
-      console.log(`Added coupons: ${coupons.slice(i, i+20)}. Transaction hash: ${receipt!.hash}`);
-    }
-  });
-
-// Add a new question.
+// Set reward amount in native token.
 task('setReward')
   .addPositionalParam('address', 'contract address')
   .addPositionalParam('reward', 'reward in ROSE')
   .setAction(async (args, hre) => {
-    await hre.run('compile');
-
-    let quiz = await hre.ethers.getContractAt('Quiz', args.address);
-    const tx = await quiz.setReward(hre.ethers.parseEther(args.reward));
-    const receipt = await tx.wait();
-    console.log(`Successfully set reward to ${args.reward} ROSE. Transaction hash: ${receipt!.hash}`);
+    const quiz = await hre.ethers.getContractAt('Quiz', args.address);
+    await setReward(hre, quiz, args.reward);
   });
 
-// Add a new question.
+// Send funds from signers account to quiz contract.
 task('fund')
   .addPositionalParam('address', 'contract address')
-  .addPositionalParam('amount', 'reclaim funds to this address')
+  .addPositionalParam('amount', 'amount in ROSE')
   .setAction(async (args, hre) => {
-    await hre.run('compile');
-
-    let quiz = await hre.ethers.getContractAt('Quiz', args.address);
-    const tx = await (await hre.ethers.getSigners())[0].sendTransaction({
-      from: (await hre.ethers.getSigners())[0].address,
-      to: await quiz.getAddress(),
-      value: hre.ethers.parseEther(args.amount),
-    });
-    const receipt = await tx.wait();
-    console.log(`Successfully funded ${await quiz.getAddress()} with ${args.amount} ROSE. Transaction hash: ${receipt!.hash}`);
+    const quiz = await hre.ethers.getContractAt('Quiz', args.address);
+    await fundContract(hre,
+      quiz,
+       args.amount
+      );
   });
 
-// Add a new question.
+// Send funds from quiz contract to specified address.
 task('reclaimFunds')
   .addPositionalParam('address', 'contract address')
   .addPositionalParam('payoutAddress', 'reclaim funds to this address')
@@ -244,20 +274,47 @@ task('reclaimFunds')
     console.log(`Successfully reclaimed funds to ${args.payoutAddress}. Transaction hash: ${receipt!.hash}`);
   });
 
-// Add a new question.
+// Set gasless key-pair.
 task('setGaslessKeyPair')
   .addPositionalParam('address', 'contract address')
   .addPositionalParam('payerAddress', 'payer address')
   .addPositionalParam('payerSecret', 'payer secret key')
   .setAction(async (args, hre) => {
-    await hre.run('compile');
-
-    let quiz = await hre.ethers.getContractAt('Quiz', args.address);
-
+    const quiz = await hre.ethers.getContractAt('Quiz', args.address);
     const nonce = await hre.ethers.provider.getTransactionCount(args.payerAddress);
-    const tx = await quiz.setGaslessKeyPair(args.payerAddress, args.payerSecret, nonce);
-    const receipt = await tx.wait();
-    console.log(`Successfully set gasless keypair to ${args.payerAddress}, secret ${args.payerSecret} and nonce ${nonce}. Transaction hash: ${receipt!.hash}`);
+    await setGaslessKeyPair(quiz, args.payerAddress, args.payerSecret, nonce);
+  });
+
+
+// Deploy and setup Quiz contract.
+task('deployAndSetupQuiz')
+  .addOptionalParam('questionsFile', 'File containing questions in JSON format', 'test-questions.json')
+  .addOptionalParam('couponsFile', 'File containing coupons, one per line', 'test-coupons.txt')
+  .addOptionalParam('reward', 'Reward in ROSE', '2.0')
+  .addOptionalParam('gaslessAddress', 'Payer address for gasless transactions')
+  .addOptionalParam('gaslessSecret', 'Payer secret key for gasless transactions')
+  .addOptionalParam('fundAmount', 'Amount in ROSE to fund the contract', '100')
+  .addOptionalParam('fundGaslessAmount', 'Amount in ROSE to fund the gasless account', '10')
+  .addOptionalParam('contractAddress', 'Contract address for status check')
+  .setAction(async (args, hre) => {
+    await hre.run('compile');
+    const quiz = await deployContract(hre, 'Quiz', hre.network.config.url);
+    await addQuestions(quiz, args.questionsFile);
+    await addCoupons(quiz, args.couponsFile);
+    await setReward(hre, quiz, args.reward);
+    await fundContract(hre, quiz, args.fundAmount);
+    const nonce = await hre.ethers.provider.getTransactionCount(args.gaslessAddress);
+    if (!args.gaslessAddress || !args.gaslessSecret) {
+      console.log('Provide --gasless-address and --gasless-secret to set gasless keypair.');
+      return
+    }
+    await setGaslessKeyPair(quiz, args.gaslessAddress, args.gaslessSecret, nonce);
+    await fundGaslessAccount(hre, args.gaslessAddress, args.fundGaslessAmount);
+    if (args.contractAddress) {
+      await hre.run('status', { address: args.contractAddress });
+    } else {
+      await hre.run('status', { address: await quiz.getAddress() });
+    }
   });
 
 // Hardhat Node and sapphire-dev test mnemonic.
