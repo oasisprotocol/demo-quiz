@@ -21,7 +21,7 @@ jobs:
         with:
           node-version: 18
 
-      - uses: pnpm/action-setup@v2.4.0
+      - uses: pnpm/action-setup@v4
         name: Install pnpm
         id: pnpm-install
         with:
@@ -58,6 +58,14 @@ jobs:
         working-directory: frontend
         run: pnpm build
 
+      - name: Format Vue frontend
+        working-directory: frontend
+        run: pnpm -- format
+      
+      - name: Lint Vue frontend
+        working-directory: frontend
+        run: pnpm -- lint
+
   test-backend-sapphire:
     name: test-backend-sapphire
     runs-on: ubuntu-latest
@@ -82,7 +90,7 @@ jobs:
         with:
           node-version: 18
 
-      - uses: pnpm/action-setup@v2.4.0
+      - uses: pnpm/action-setup@v4
         name: Install pnpm
         id: pnpm-install
         with:
@@ -110,7 +118,15 @@ jobs:
       - name: Build backend
         working-directory: backend
         run: pnpm build
-
+      
+      - name: Format contracts
+        working-directory: backend
+        run: pnpm -- format
+      
+      - name: Lint contracts
+        working-directory: backend
+        run: pnpm -- lint
+      
       - name: Test backend
         working-directory: backend
         run: pnpm test -- --network sapphire-localnet

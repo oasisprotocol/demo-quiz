@@ -17,8 +17,8 @@
 
 <script setup lang="ts">
 defineProps<{
-  variant: 'primary' | 'secondary' | 'danger' | 'choice' | 'tertiary';
-  size?: 'default' | 'small';
+  variant: "primary" | "secondary" | "danger" | "choice" | "tertiary";
+  size?: "default" | "small";
 }>();
 </script>
 

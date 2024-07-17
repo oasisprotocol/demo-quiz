@@ -1,10 +1,10 @@
-import type { ComputedRef } from 'vue';
-import { computed } from 'vue';
+import type { ComputedRef } from "vue";
+import { computed } from "vue";
 
-import { type Quiz, Quiz__factory } from '@oasisprotocol/demo-quiz-backend';
-export type { Quiz } from '@oasisprotocol/demo-quiz-backend';
+import { type Quiz, Quiz__factory } from "@oasisprotocol/demo-quiz-backend";
+export type { Quiz } from "@oasisprotocol/demo-quiz-backend";
 
-import { useEthereumStore } from './stores/ethereum';
+import { useEthereumStore } from "./stores/ethereum";
 
 const addr = import.meta.env.VITE_QUIZ_ADDR!;
 
@@ -13,7 +13,7 @@ export function useQuiz(): ComputedRef<Quiz | null> {
 
   return computed(() => {
     if (!eth) {
-      console.error('[useQuiz] Ethereum Store not initialized');
+      console.error("[useQuiz] Ethereum Store not initialized");
       return null;
     }
 

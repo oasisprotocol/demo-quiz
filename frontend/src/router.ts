@@ -1,6 +1,6 @@
-import { createRouter, createWebHashHistory } from 'vue-router';
+import { createRouter, createWebHashHistory } from "vue-router";
 
-import HomeView from './views/HomeView.vue';
+import HomeView from "./views/HomeView.vue";
 
 const router = createRouter({
   strict: true,
@@ -11,14 +11,14 @@ const router = createRouter({
       component: HomeView,
     },
     {
-      path: '/quiz/:coupon?',
-      component: () => import('./views/QuizView.vue'),
+      path: "/quiz/:coupon?",
+      component: () => import("./views/QuizView.vue"),
       props: true,
-      name: 'quiz',
+      name: "quiz",
     },
     {
-      path: '/:path(.*)',
-      component: () => import('./views/404View.vue'),
+      path: "/:path(.*)",
+      component: () => import("./views/404View.vue"),
     },
   ],
 });
