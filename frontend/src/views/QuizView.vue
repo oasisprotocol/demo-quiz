@@ -245,6 +245,8 @@ onMounted(async () => {
   </section>
   <section v-if="rewardClaimed">
     <SuccessInfo class="mb-20">
+      <h2 class="text-white text-3xl mb-10">Your NFT:</h2>
+      <img src="@/assets/images/Capture2.PNG" alt="Reward Image" class="mb-10" />
       <h3 class="text-white text-3xl mb-10">Reward claimed!</h3>
       <p class="text-white">
         Check out our <a href="https://docs.oasis.io/dapp/sapphire/quickstart" target="_blank">Oasis Sapphire quickstart</a> and start building!
