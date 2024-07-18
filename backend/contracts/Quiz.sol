@@ -3,55 +3,9 @@ pragma solidity ^0.8.0;
 
 import "@oasisprotocol/sapphire-contracts/contracts/Sapphire.sol";
 import {EIP155Signer} from "@oasisprotocol/sapphire-contracts/contracts/EIP155Signer.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
-
-contract QuizERC721 is ERC721Enumerable {
-    // Mapping from token ID to IPFS URI
-    mapping(uint256 => string) private _tokenURIs;
-
-    // Mapping from user address to list of owned token IDs
-    mapping(address => uint256[]) private _ownedTokens;
-
-    constructor(string memory name, string memory symbol, string[] memory ipfsURIs) ERC721(name, symbol) {
-        for (uint256 i = 0; i < ipfsURIs.length; i++) {
-            // Assuming token IDs start at 0 and increment for each URI
-            uint256 tokenId = i;
-            _tokenURIs[tokenId] = ipfsURIs[i];
-            // Note: Tokens are not minted here, just their URIs are set. Minting should be done separately.
-        }
-    }
-
-    // Function to mint new tokens
-    function mint(address to, uint256 tokenId) public {
-        require(bytes(_tokenURIs[tokenId]).length > 0, "Token URI not set");
-        _safeMint(to, tokenId);
-    }
-
-    // Function to get the IPFS URI of a token
-    function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
-        require(_exists(tokenId), "ERC721URIStorage: URI set of nonexistent token");
-        return _tokenURIs[tokenId];
-    }
-
-    // Function to get the list of token IDs owned by an address
-    function getOwnedTokens(address owner) public view returns (uint256[] memory) {
-        uint256 tokenCount = balanceOf(owner);
-        if (tokenCount == 0) {
-            // Return an empty array
-            return new uint256[](0);
-        } else {
-            uint256[] memory tokensId = new uint256[](tokenCount);
-            for (uint256 i = 0; i < tokenCount; i++) {
-                tokensId[i] = tokenOfOwnerByIndex(owner, i);
-            }
-            return tokensId;
-        }
-    }
-}
+import {OasisReward} from "./OasisReward.sol";
 
 contract Quiz {
-
-    address private nftContractAddress;
     
     string constant errInvalidCoupon = "Invalid coupon";
     string constant errCouponExists = "Coupon already exists";
@@ -90,6 +44,12 @@ contract Quiz {
     address _owner;
     // Encryption key for encrypting payout certificates.
     bytes32 _key;
+    // Quiz ID for generating NFT images
+    uint32 _quizID;
+    // Base64 svg image for this quiz instance
+    string _svgImage;
+    // NFT contract address
+    address _nftAddress;
     // List of questions.
     QuizQuestion[] _questions;
     // Total number of choices. Used for generating the permutation vector.
@@ -291,7 +251,7 @@ contract Quiz {
                 EIP155Signer.EthTx({
                     nonce: _kp.nonce,
                     gasPrice: 100_000_000_000,
-                    gasLimit: 250_000,
+                    gasLimit: 1_000_000,
                     to: address(this),
                     value: 0,
                     data: abi.encodeCall(this.claimReward, encPc),
@@ -320,11 +280,9 @@ contract Quiz {
 
         // Invalidate coupon.
         _coupons[pc.coupon] = block.number;
-
-        // Use getNft() to check if NFT contract has been initialized and mint NFT
-        address nftContractAddr = getNft();
-        uint256 tokenId = QuizERC721(nftContractAddr).totalSupply() + 1;
-        QuizERC721(nftContractAddr).mint(pc.addr, tokenId);
+        
+        // Mint NFT
+        OasisReward(getNft()).mint(pc.addr, _svgImage);
 
         // Increase nonce, for gasless tx.
         if (msg.sender==_kp.addr) {
@@ -332,16 +290,18 @@ contract Quiz {
         }
     }
 
-    // Function to deploy a new ERC721 contract and set its address
-    function setNft(string memory name, string memory symbol, string[] memory ipfsURIs) public {
-        QuizERC721 newNft = new QuizERC721(name, symbol, ipfsURIs);
-        nftContractAddress = address(newNft);
+    // Adds the IDs of the NFT contract to the Quiz contract
+    function setNft(address nftAddress) external onlyOwner
+    {
+        _quizID = uint32(block.number);
+        _svgImage = OasisReward(nftAddress).generateComplexSVG(_quizID);
+        _nftAddress = nftAddress;
     }
 
     // Function to get the deployed ERC721 contract instance
     function getNft() public view returns (address) {
-        require(nftContractAddress != address(0), "NFT contract not deployed");
-        return nftContractAddress;
+        require(_nftAddress != address(0), "NFT contract not deployed");
+        return _nftAddress;
     }
 
     // Reclaims contract funds to given address.
