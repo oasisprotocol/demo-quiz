@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
-import "@openzeppelin/contracts/utils/Base64.sol";
+import {ERC721, ERC721Enumerable} from "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+import {Base64} from "@openzeppelin/contracts/utils/Base64.sol";
 
 contract OasisReward is ERC721Enumerable {
     // Mapping from token ID to IPFS URI
@@ -11,20 +11,28 @@ contract OasisReward is ERC721Enumerable {
     // Mapping from user address to list of owned token IDs
     mapping(address => uint256[]) private _ownedTokens;
     // Whitelisted msg.sender accounts
-    mapping(address => bool) _allowMint;
-
+    mapping(address => bool) private _allowMint;
 
     // Contract owner
     address private _owner;
 
-    
-    modifier onlyOwner {
-        require(msg.sender == _owner, "Only owner can call this function");
+    error OnlyOwnerCanCallFunction(address caller);
+    error AddressNotAllowed(address caller);
+    error IncorrectImageError(string base64Encoded);
+    error TokenNotExistError(uint256 tokenId);
+    error ZeroAddressError(address owner);
+
+    modifier onlyOwner() {
+        if (msg.sender != _owner) {
+            revert OnlyOwnerCanCallFunction(msg.sender);
+        }
         _;
     }
 
-    modifier onlyAllowMint {
-        require(_allowMint[msg.sender], "Address not allowed");
+    modifier onlyAllowMint() {
+        if (!_allowMint[msg.sender]) {
+            revert AddressNotAllowed(msg.sender);
+        }
         _;
     }
 
@@ -34,7 +42,6 @@ contract OasisReward is ERC721Enumerable {
     ) ERC721(name, symbol) {
         _owner = msg.sender;
     }
-
 
     function addAllowMint(address _address) public onlyOwner {
         _allowMint[_address] = true;
@@ -50,8 +57,13 @@ contract OasisReward is ERC721Enumerable {
      * @param base64EncodedSVG base64 encoded SVG image
      */
     // Function to mint new tokens
-    function mint(address to, string calldata base64EncodedSVG) public onlyAllowMint {
-        require(bytes(base64EncodedSVG).length > 0, "Token URI not set");
+    function mint(
+        address to,
+        string calldata base64EncodedSVG
+    ) public onlyAllowMint {
+        if (bytes(base64EncodedSVG).length == 0) {
+            revert IncorrectImageError(base64EncodedSVG);
+        }
         uint256 tokenId = totalSupply();
         _tokenURIs[tokenId] = base64EncodedSVG;
         _safeMint(to, tokenId);
@@ -59,24 +71,28 @@ contract OasisReward is ERC721Enumerable {
     }
 
     /**
-     * 
      * @notice Generate a simple SVG image that can be stored on-chain
      * @param quizID unique identifier for the quiz contract
      */
     function generateComplexSVG(
         uint32 quizID
     ) public view onlyAllowMint returns (string memory) {
-
-        // Use tokenId to generate some unique details for the SVG
+        // Use tokenId to generate a simple circle SVG image
         // For simplicity, let's change the circle's color based on the tokenId's parity
         string memory circleColor = quizID % 2 == 0 ? "blue" : "red";
 
         // SVG parts concatenated with dynamic data
-        string memory svg = string(abi.encodePacked(
-            "<svg width=\"200\" height=\"200\" xmlns=\"http://www.w3.org/2000/svg\">",
-            "<circle cx=\"100\" cy=\"100\" r=\"50\" fill=\"", circleColor, "\" />",
-            "</svg>"
-        ));
+        string memory svg = string(
+            abi.encodePacked(
+                ""
+                '<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><circle cx="100" cy="100" r="50" fill="'
+                "",
+                circleColor,
+                ""
+                '" /></svg>'
+                ""
+            )
+        );
 
         // Encode the entire SVG string to Base64
         string memory base64EncodedSVG = Base64.encode(bytes(svg));
@@ -89,28 +105,28 @@ contract OasisReward is ERC721Enumerable {
     }
 
     /**
-     * 
      * @notice Returns the SVG base64 encoded string for a tokenID
      * @param tokenId unique identifier for the token
-     * 
      */
-    function tokenURI(
+    function getTokenImage(
         uint256 tokenId
-    ) public view virtual override returns (string memory) {
-        require(
-            _exists(tokenId),
-            "ERC721URIStorage: URI set of nonexistent token"
-        );
+    ) public view virtual returns (string memory) {
+        if (!_exists(tokenId)) {
+            revert TokenNotExistError(tokenId);
+        }
         return _tokenURIs[tokenId];
     }
 
     /**
-     * 
      * @notice Returns the list of token IDs owned by an address
      * @param owner address of the owner
      */
-    function getOwnedTokens(address owner) public view returns (uint256[] memory) {
-        require(owner != address(0), "Address cannot be the zero address.");
+    function getOwnedTokens(
+        address owner
+    ) public view returns (uint256[] memory) {
+        if (owner == address(0)) {
+            revert ZeroAddressError(owner);
+        }
         return _ownedTokens[owner];
     }
 }

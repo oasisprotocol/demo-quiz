@@ -1,4 +1,4 @@
-import { onMounted, onUnmounted, ref } from 'vue';
+import { onMounted, onUnmounted, ref } from "vue";
 
 export function useMedia(query: string) {
   let mediaQuery!: MediaQueryList;
@@ -14,13 +14,13 @@ export function useMedia(query: string) {
     }
 
     matches.value = mediaQuery.matches;
-    mediaQuery.addEventListener('change', handler, {
+    mediaQuery.addEventListener("change", handler, {
       capture: false,
     });
   });
 
   onUnmounted(() => {
-    mediaQuery.removeEventListener('change', handler);
+    mediaQuery.removeEventListener("change", handler);
   });
 
   return matches;
