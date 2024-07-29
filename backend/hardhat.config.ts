@@ -74,7 +74,6 @@ async function setGaslessKeyPair(quizContract: any, payerAddress: string, payerS
   console.log(`Set gasless keypair. Transaction hash: ${receipt!.hash}`);
 }
 
-
 const TASK_EXPORT_ABIS = 'export-abis';
 
 task(TASK_COMPILE, async (_args, hre, runSuper) => {

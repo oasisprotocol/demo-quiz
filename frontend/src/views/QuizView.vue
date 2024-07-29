@@ -1,16 +1,14 @@
 <script setup lang="ts">
-import {type BytesLike, ethers} from 'ethers';
-import { computed, onMounted, ref } from 'vue';
+import { type ethers } from "ethers";
+import { onMounted, ref } from "vue";
 
-import { useQuiz } from '../contracts';
-import { Network, useEthereumStore } from '../stores/ethereum';
-import AppButton from '@/components/AppButton.vue';
-import SuccessInfo from '@/components/SuccessInfo.vue';
-import CheckIcon from '@/components/CheckIcon.vue';
-import CheckedIcon from '@/components/CheckedIcon.vue';
-import UncheckedIcon from '@/components/UncheckedIcon.vue';
-import QuizDetailsLoader from '@/components/QuizDetailsLoader.vue';
-import {retry} from "@/utils/promise";
+import { useQuiz } from "../contracts";
+import { useEthereumStore } from "../stores/ethereum";
+import AppButton from "@/components/AppButton.vue";
+import SuccessInfo from "@/components/SuccessInfo.vue";
+import CheckedIcon from "@/components/CheckedIcon.vue";
+import UncheckedIcon from "@/components/UncheckedIcon.vue";
+import QuizDetailsLoader from "@/components/QuizDetailsLoader.vue";
 
 const props = defineProps<{ coupon: string }>();
 
@@ -25,7 +23,7 @@ const questions = ref<Question[]>([]);
 const selectedChoices = ref<bigint[]>([]);
 const allQuestionsAnswered = ref<Boolean>(false);
 const correctVector = ref<boolean[]>([]);
-const address = ref('');
+const address = ref("");
 
 const couponValid = ref<Boolean>(false);
 const answersChecked = ref<Boolean>(false);
@@ -51,9 +49,9 @@ function handleError(error: Error, errorMessage: string) {
 async function onChoiceClick(qId: number, choiceId: number): Promise<void> {
   selectedChoices.value[qId] = BigInt(choiceId);
 
-  let allAns = true
-  for (let i=0; i<selectedChoices.value.length; i++) {
-    if (selectedChoices.value[i]===undefined) {
+  let allAns = true;
+  for (let i = 0; i < selectedChoices.value.length; i++) {
+    if (selectedChoices.value[i] === undefined) {
       allAns = false;
       break;
     }
@@ -86,8 +84,8 @@ async function fetchQuestions(): Promise<void> {
     isReward.value = await quiz.value!.isReward();
     selectedChoices.value = Array(questions.value.length); // prepare an array of undefined values until the answer is selected.
     couponValid.value = true;
-  } catch(e) {
-    handleError(e as Error, 'Coupon not valid');
+  } catch (e) {
+    handleError(e as Error, "Coupon not valid");
   } finally {
     isLoading.value = false;
   }
@@ -110,19 +108,21 @@ async function claimReward(e: Event): Promise<void> {
       const [cv, gaslessTx] = await quiz.value!.checkAnswers(
         props.coupon,
         selectedChoices.value,
-        ethers.getAddress(address.value),
+        ethers.getAddress(address.value)
       );
       console.log(cv);
       console.log(gaslessTx);
-      let receipt = await (await eth.provider.broadcastTransaction(gaslessTx)).wait(); // gasless version
+      let receipt = await (
+        await eth.provider.broadcastTransaction(gaslessTx)
+      ).wait(); // gasless version
       //let receipt = await (await quiz.value!.claimReward(gaslessTx)).wait(); // standard version
-      console.log('receipt.status: ' + receipt!.status);
+      console.log("receipt.status: " + receipt!.status);
       if (receipt!.status == 1) {
-        rewardClaimed.value = true
+        rewardClaimed.value = true;
       }
     } catch (e: any) {
       if (++timeout == TIMEOUT_LIMIT) {
-        handleError(e, 'Error while claiming the reward');
+        handleError(e, "Error while claiming the reward");
       }
     }
   }
@@ -155,30 +155,33 @@ onMounted(async () => {
     <div v-if="questions">
       <form @submit="checkAnswers">
         <fieldset
-            class="mb-5"
-            v-for="[qId, question] in Object.entries(questions)"
-            :key="qId"
+          class="mb-5"
+          v-for="[qId, question] in Object.entries(questions)"
+          :key="qId"
         >
-          <p style="cursor:default" class="text-white text-base mb-5">{{parseInt(qId)+1}}. {{question.question}}
+          <p style="cursor: default" class="text-white text-base mb-5">
+            {{ parseInt(qId) + 1 }}. {{ question.question }}
             <span v-if="answersChecked">
               <span v-if="correctVector[parseInt(qId)]">✅</span>
               <span v-if="!correctVector[parseInt(qId)]">❌</span>
             </span>
           </p>
           <AppButton
-              v-for="(choice, choiceId) in question.choices"
-              :key="choiceId"
-              :class="{
+            v-for="(choice, choiceId) in question.choices"
+            :key="choiceId"
+            :class="{
               selected: selectedChoices[parseInt(qId)] === BigInt(choiceId),
               'pointer-events-none': isLoading,
             }"
-              class="choice-btn mb-2 w-full"
-              variant="choice"
-              @click="onChoiceClick(parseInt(qId), choiceId)"
+            class="choice-btn mb-2 w-full"
+            variant="choice"
+            @click="onChoiceClick(parseInt(qId), choiceId)"
           >
             <span class="flex gap-2">
               <div class="align-middle">
-                <CheckedIcon v-if="selectedChoices[parseInt(qId)] === BigInt(choiceId)" />
+                <CheckedIcon
+                  v-if="selectedChoices[parseInt(qId)] === BigInt(choiceId)"
+                />
                 <UncheckedIcon v-else />
               </div>
               <span class="leading-6 normal-case text-left">{{ choice }}</span>
@@ -186,7 +189,10 @@ onMounted(async () => {
           </AppButton>
         </fieldset>
 
-        <div v-if="errors.length > 0" class="text-red-500 px-3 mt-5 rounded-xl-sm">
+        <div
+          v-if="errors.length > 0"
+          class="text-red-500 px-3 mt-5 rounded-xl-sm"
+        >
           <span class="font-bold">Error:</span>
           <div v-for="error in errors" :key="error">{{ error }}</div>
         </div>
@@ -206,38 +212,53 @@ onMounted(async () => {
 
     <QuizDetailsLoader v-else />
   </section>
-  <section class="pt-5"  v-if="answersCorrect && !rewardClaimed">
+  <section class="pt-5" v-if="answersCorrect && !rewardClaimed">
     <SuccessInfo>
-      <h2 class="text-2xl text-white text-base mb-5 mt-10">You Solved the Quiz!</h2>
+      <h2 class="text-2xl text-white text-base mb-5 mt-10">
+        You Solved the Quiz!
+      </h2>
     </SuccessInfo>
 
     <section v-if="isReward">
       <p class="text-white text-base mb-5 mt-10">
-        To claim the reward, enter your account address below.
-        You will receive ROSE on the <a href="https://docs.oasis.io/dapp/sapphire/#chain-information" target="_blank">Oasis Sapphire Mainnet</a> chain.
+        To claim the reward, enter your account address below. You will receive
+        ROSE on the
+        <a
+          href="https://docs.oasis.io/dapp/sapphire/#chain-information"
+          target="_blank"
+          >Oasis Sapphire Mainnet</a
+        >
+        chain.
       </p>
       <form @submit="claimReward">
         <div class="form-group">
           <input
-              type="text"
-              id="addressText"
-              class="peer"
-              placeholder=" "
-              v-model="address"
-              pattern="^(0x)?[0-9a-fA-F]{40}$"
-              required
+            type="text"
+            id="addressText"
+            class="peer"
+            placeholder=" "
+            v-model="address"
+            pattern="^(0x)?[0-9a-fA-F]{40}$"
+            required
           />
           <label
-              for="addressText"
-              class="peer-focus:text-primaryDark peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-5"
+            for="addressText"
+            class="peer-focus:text-primaryDark peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-5"
           >
             Your address (0x...):
             <span class="text-red-500">*</span>
           </label>
         </div>
 
-        <AppButton class="mb-20 no-capitalize" type="submit" variant="primary" :disabled="isClaimingReward">
-          <span class="normal-case" v-if="isClaimingReward">Generating transaction and sending reward…</span>
+        <AppButton
+          class="mb-20 no-capitalize"
+          type="submit"
+          variant="primary"
+          :disabled="isClaimingReward"
+        >
+          <span class="normal-case" v-if="isClaimingReward"
+            >Generating transaction and sending reward…</span
+          >
           <span class="normal-case" v-else>Claim your reward</span>
         </AppButton>
       </form>
@@ -246,13 +267,24 @@ onMounted(async () => {
   <section v-if="rewardClaimed">
     <SuccessInfo class="mb-20">
       <h2 class="text-white text-3xl mb-10">Your NFT:</h2>
-      <img src="@/assets/images/Capture2.PNG" alt="Reward Image" class="mb-10" />
+      <img
+        src="@/assets/images/Capture2.PNG"
+        alt="Reward Image"
+        class="mb-10"
+      />
       <h3 class="text-white text-3xl mb-10">Reward claimed!</h3>
       <p class="text-white">
-        Check out our <a href="https://docs.oasis.io/dapp/sapphire/quickstart" target="_blank">Oasis Sapphire quickstart</a> and start building!
+        Check out our
+        <a href="https://docs.oasis.io/dapp/sapphire/quickstart" target="_blank"
+          >Oasis Sapphire quickstart</a
+        >
+        and start building!
       </p>
       <p class="text-white">
-        If you need help, contact us on the Oasis <a href="https://oasis.io/discord" target="_blank">#dev-central Discord channel</a>.
+        If you need help, contact us on the Oasis
+        <a href="https://oasis.io/discord" target="_blank"
+          >#dev-central Discord channel</a
+        >.
       </p>
     </SuccessInfo>
   </section>

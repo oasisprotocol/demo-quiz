@@ -1,8 +1,8 @@
-import { fileURLToPath, URL } from 'node:url';
+import { fileURLToPath, URL } from "node:url";
 
-import { defineConfig } from 'vite';
-import vue from '@vitejs/plugin-vue';
-import { visualizer } from 'rollup-plugin-visualizer';
+import { defineConfig } from "vite";
+import vue from "@vitejs/plugin-vue";
+import { visualizer } from "rollup-plugin-visualizer";
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -12,16 +12,16 @@ export default defineConfig({
   // define: {
   //   __VUE_OPTIONS_API__: false
   // },
-  assetsInclude: ['**/*.PNG'], // Ensure PNG files are included as assets
+  assetsInclude: ["**/*.PNG"], // Ensure PNG files are included as assets
   plugins: [vue(), visualizer({ sourcemap: true, gzipSize: true })],
   resolve: {
     alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url)),
+      "@": fileURLToPath(new URL("./src", import.meta.url)),
     },
   },
   server: {
     proxy: {
-      '/api': 'http://127.0.0.1:8788',
-    }
-  }
+      "/api": "http://127.0.0.1:8788",
+    },
+  },
 });

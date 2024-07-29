@@ -7,7 +7,7 @@ function rejectDelay(reason: string) {
 export async function retry<T extends Promise<any>>(
   attempt: () => T,
   tryCb: (value: Awaited<T>) => void = () => {},
-  maxAttempts = 10,
+  maxAttempts = 10
 ): Promise<Awaited<() => T>> {
   let p: Promise<Awaited<typeof attempt>> = Promise.reject();
 

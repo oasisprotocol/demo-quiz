@@ -6,7 +6,7 @@
 </template>
 
 <script setup lang="ts">
-import SuccessIcon from '@/components/SuccessIcon.vue';
+import SuccessIcon from "@/components/SuccessIcon.vue";
 </script>
 
 <style scoped lang="postcss">
