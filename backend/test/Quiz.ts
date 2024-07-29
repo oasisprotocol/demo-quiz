@@ -335,6 +335,7 @@ describe("Quiz", function () {
         await ethers.getSigners()
       )[1].address
     );
+
     expect(payoutCertificate).to.not.equal("0x");
 
     const balance1 = await ethers.provider.getBalance(

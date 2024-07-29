@@ -9,6 +9,7 @@ contract Quiz {
     uint256 public constant COUPON_VALID = type(uint256).max - 1;
     uint256 public constant COUPON_REMOVED = type(uint256).max - 2;
 
+
     struct QuizQuestion {
         // Question.
         string question;
@@ -41,6 +42,7 @@ contract Quiz {
     string private _svgImage;
     // NFT contract address
     address private _nftAddress;
+
     // List of questions.
     QuizQuestion[] private _questions;
     // Total number of choices. Used for generating the permutation vector.
@@ -345,7 +347,7 @@ contract Quiz {
 
         // Invalidate coupon.
         _coupons[pc.coupon] = block.number;
-
+    
         // Increase nonce, for gasless tx.
         if (msg.sender == _kp.addr) {
             _kp.nonce++;
