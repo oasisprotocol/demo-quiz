@@ -2,42 +2,46 @@ import { expect } from "chai";
 import { ethers } from "hardhat";
 import {Quiz, Quiz__factory} from "../typechain-types";
 import {getDefaultProvider, JsonRpcProvider, toBigInt} from "ethers";
+import { deployNFT } from "./OasisRewards";
+
+async function deployQuiz() {
+  const Quiz_factory = await ethers.getContractFactory("Quiz");
+  const quiz = await Quiz_factory.deploy({
+      gasLimit: 10_000_000, // https://github.com/oasisprotocol/sapphire-paratime/issues/319
+      value: ethers.parseEther("10.00"),
+    }
+  );
+  await quiz.waitForDeployment();
+  return { quiz };
+}
+
+async function addQuestions(quiz: Quiz) {
+  await quiz.addQuestion("What's the European highest peak?", ["Mont Blanc", "Triglav", "Mount Everest", "Saint Moritz", "Sv. Jošt nad Kranjem"]);
+  await quiz.addQuestion("When was the Bitcoin whitepaper published?", ["2009", "2000", "2006", "2012", "2014", "2023"]);
+}
+
+async function addOneQuestion(quiz: Quiz) {
+  await quiz.addQuestion("What's the European highest peak?", ["Mont Blanc"]);
+}
+
+async function addCoupons(quiz: Quiz) {
+  await quiz.addCoupons(["testCoupon1", "testCoupon2"]);
+}
+
+async function setGaslessKeypair(quiz: Quiz) {
+  const addr = ethers.getAddress("0xDce075E1C39b1ae0b75D554558b6451A226ffe00");
+  const sk = Uint8Array.from(Buffer.from("c0e43d8755f201b715fd5a9ce0034c568442543ae0a0ee1aec2985ffe40edb99", 'hex'));
+  const nonce = await ethers.provider.getTransactionCount("0xDce075E1C39b1ae0b75D554558b6451A226ffe00");
+  await quiz.setGaslessKeyPair(addr, sk, nonce);
+}
+
+async function setReward(quiz: Quiz) {
+  await quiz.setReward(ethers.parseEther("10.00"));
+}
+
+export {deployQuiz, addQuestions, addOneQuestion, addCoupons, setGaslessKeypair, setReward};
 
 describe("Quiz", function () {
-  async function deployQuiz() {
-    const Quiz_factory = await ethers.getContractFactory("Quiz");
-    const quiz = await Quiz_factory.deploy({
-        gasLimit: 3_000_000, // https://github.com/oasisprotocol/sapphire-paratime/issues/319
-        value: ethers.parseEther("10.00"),
-      }
-    );
-    await quiz.waitForDeployment();
-    return { quiz };
-  }
-
-  async function addQuestions(quiz: Quiz) {
-    await quiz.addQuestion("What's the European highest peak?", ["Mont Blanc", "Triglav", "Mount Everest", "Saint Moritz", "Sv. Jošt nad Kranjem"]);
-    await quiz.addQuestion("When was the Bitcoin whitepaper published?", ["2009", "2000", "2006", "2012", "2014", "2023"]);
-  }
-
-  async function addOneQuestion(quiz: Quiz) {
-    await quiz.addQuestion("What's the European highest peak?", ["Mont Blanc"]);
-  }
-
-  async function addCoupons(quiz: Quiz) {
-    await quiz.addCoupons(["testCoupon1", "testCoupon2"]);
-  }
-
-  async function setGaslessKeypair(quiz: Quiz) {
-    const addr = ethers.getAddress("0xDce075E1C39b1ae0b75D554558b6451A226ffe00");
-    const sk = Uint8Array.from(Buffer.from("c0e43d8755f201b715fd5a9ce0034c568442543ae0a0ee1aec2985ffe40edb99", 'hex'));
-    const nonce = await ethers.provider.getTransactionCount("0xDce075E1C39b1ae0b75D554558b6451A226ffe00");
-    await quiz.setGaslessKeyPair(addr, sk, nonce);
-  }
-
-  async function setReward(quiz: Quiz) {
-    await quiz.setReward(ethers.parseEther("10.00"));
-  }
 
   it("Should fund contract", async function () {
     const {quiz} = await deployQuiz();
@@ -177,13 +181,18 @@ describe("Quiz", function () {
   });
 
   it("User should receive payout certificate", async function () {
-    if ((await ethers.provider.getNetwork()).chainId == 1337) { // Requires Sapphire precompiles.
+    if ((await ethers.provider.getNetwork()).chainId != BigInt(0x5afd)) { // Requires Sapphire precompiles.
       this.skip();
     }
     const {quiz} = await deployQuiz();
+    const { oasisReward } = await deployNFT();
+    
+    await oasisReward.addAllowMint(quiz.getAddress());
+    await quiz.setNft(oasisReward.getAddress());
     await addOneQuestion(quiz);
     await addCoupons(quiz);
     await setReward(quiz);
+
 
     const [_correctVector, payoutCertificate] = await quiz.checkAnswers("testCoupon1", [0], (await ethers.getSigners())[1].address);
     expect(payoutCertificate).to.not.equal("0x");
@@ -199,10 +208,14 @@ describe("Quiz", function () {
   });
 
   it("User should send gasless transaction", async function () {
-    if ((await ethers.provider.getNetwork()).chainId == 1337) { // Requires Sapphire precompiles.
+    if ((await ethers.provider.getNetwork()).chainId != BigInt(0x5afd)) { // Requires Sapphire precompiles.
       this.skip();
     }
     const {quiz} = await deployQuiz();
+    const { oasisReward } = await deployNFT();
+    
+    await oasisReward.addAllowMint(quiz.getAddress());
+    await quiz.setNft(oasisReward.getAddress());
     await addOneQuestion(quiz);
     await addCoupons(quiz);
     await setReward(quiz);

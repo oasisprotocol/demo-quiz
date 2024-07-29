@@ -12,7 +12,6 @@ import { HardhatUserConfig, task } from 'hardhat/config';
 import 'solidity-coverage';
 
 
-
 async function deployContract(hre: typeof import('hardhat'), contractName: string, url: string) {
   const { ethers } = hre;
   const uwProvider = new JsonRpcProvider(url);
@@ -102,6 +101,23 @@ task(TASK_EXPORT_ABIS, async (_args, hre) => {
   );
 });
 
+// Deploy the OasisReward contract.
+task('deployOasisReward')
+  .addParam("name", "Name of NFT")
+  .addParam("symbol", "Symbol for NFT token")
+  .setAction(async (args, hre) => {
+    await hre.run('compile');
+
+    // For deployment unwrap the provider to enable contract verification.
+    const uwProvider = new JsonRpcProvider(hre.network.config.url);
+    const OasisReward = await hre.ethers.getContractFactory('OasisReward', new hre.ethers.Wallet(accounts[0], uwProvider));
+    const oasisReward = await OasisReward.deploy(args.name, args.symbol);
+    await oasisReward.waitForDeployment();
+
+    console.log(`OasisReward address: ${await oasisReward.getAddress()}`);
+    return oasisReward;
+});
+
 // Unencrypted contract deployment.
 task('deploy')
   .setAction(async (args, hre) => {
@@ -110,6 +126,24 @@ task('deploy')
     // For deployment unwrap the provider to enable contract verification.
     const quiz = await deployContract(hre, 'Quiz', hre.network.config.url);
     });
+
+// Set the NFT address in the Quiz contract.
+task("setNftAddress", "Sets the NFT contract address in the Quiz contract")
+  .addParam("address", "The address of the deployed Quiz contract")
+  .addParam("nftaddress", "The address of the NFT contract to set")
+  .setAction(async (taskArgs, hre) => {
+
+    const quiz = await hre.ethers.getContractAt('Quiz', taskArgs.address);
+    // Call the setNft function with the provided NFT address
+    const tx = await quiz.setNft(taskArgs.nftaddress);
+
+    // Wait for the transaction to be mined
+    await tx.wait();
+
+    console.log(`NFT address set to ${taskArgs.nftaddress} in Quiz contract`);
+  });
+
+
 
 // Get list of valid coupons and spent coupons with the block number.
 task('getCoupons')

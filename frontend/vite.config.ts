@@ -12,6 +12,7 @@ export default defineConfig({
   // define: {
   //   __VUE_OPTIONS_API__: false
   // },
+  assetsInclude: ['**/*.PNG'], // Ensure PNG files are included as assets
   plugins: [vue(), visualizer({ sourcemap: true, gzipSize: true })],
   resolve: {
     alias: {
