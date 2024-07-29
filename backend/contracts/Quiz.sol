@@ -3,8 +3,10 @@ pragma solidity ^0.8.0;
 
 import "@oasisprotocol/sapphire-contracts/contracts/Sapphire.sol";
 import {EIP155Signer} from "@oasisprotocol/sapphire-contracts/contracts/EIP155Signer.sol";
+import {OasisReward} from "./OasisReward.sol";
 
 contract Quiz {
+    
     string constant errInvalidCoupon = "Invalid coupon";
     string constant errCouponExists = "Coupon already exists";
     string constant errWrongAnswer = "Wrong answer";
@@ -42,6 +44,12 @@ contract Quiz {
     address _owner;
     // Encryption key for encrypting payout certificates.
     bytes32 _key;
+    // Quiz ID for generating NFT images
+    uint32 _quizID;
+    // Base64 svg image for this quiz instance
+    string _svgImage;
+    // NFT contract address
+    address _nftAddress;
     // List of questions.
     QuizQuestion[] _questions;
     // Total number of choices. Used for generating the permutation vector.
@@ -54,6 +62,12 @@ contract Quiz {
     uint _reward;
     // Keypair used for gasless transactions (optional).
     EthereumKeypair _kp;
+    
+    // Flag for making a ROSE payout
+    bool internal _makePayoutNative = true;
+    // Flag for making a NFT payout
+    bool internal _makePayoutNFT = true;
+
 
     modifier onlyOwner {
         require(msg.sender == _owner);
@@ -243,7 +257,7 @@ contract Quiz {
                 EIP155Signer.EthTx({
                     nonce: _kp.nonce,
                     gasPrice: 100_000_000_000,
-                    gasLimit: 250_000,
+                    gasLimit: 1_000_000,
                     to: address(this),
                     value: 0,
                     data: abi.encodeCall(this.claimReward, encPc),
@@ -266,17 +280,44 @@ contract Quiz {
         // Check coupon validity.
         require(_coupons[pc.coupon] == COUPON_VALID, errInvalidCoupon);
 
-        // Make a payout.
-        (bool success, ) = pc.addr.call{value: _reward}("");
-        require(success, errPayoutFailed);
+        if (_makePayoutNative) {
+            // Make a payout.
+            (bool success, ) = pc.addr.call{value: _reward}("");
+            require(success, errPayoutFailed);
+        }
+
+        if (_makePayoutNFT) {
+            // Mint NFT
+            OasisReward(getNft()).mint(pc.addr, _svgImage);
+        }
 
         // Invalidate coupon.
         _coupons[pc.coupon] = block.number;
-
+    
         // Increase nonce, for gasless tx.
         if (msg.sender==_kp.addr) {
             _kp.nonce++;
         }
+    }
+
+    // Sets the flag for making a ROSE payout and the flag for making a NFT payout
+    function setPayoutFlags(bool makePayoutNative, bool makePayoutNFT) external onlyOwner {
+        _makePayoutNative = makePayoutNative;
+        _makePayoutNFT = makePayoutNFT;
+    }
+
+    // Adds the IDs of the NFT contract to the Quiz contract
+    function setNft(address nftAddress) external onlyOwner
+    {
+        _quizID = uint32(block.number);
+        _svgImage = OasisReward(nftAddress).generateComplexSVG(_quizID);
+        _nftAddress = nftAddress;
+    }
+
+    // Function to get the deployed ERC721 contract instance
+    function getNft() public view returns (address) {
+        require(_nftAddress != address(0), "NFT contract not deployed");
+        return _nftAddress;
     }
 
     // Reclaims contract funds to given address.
