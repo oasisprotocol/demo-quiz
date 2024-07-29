@@ -113,6 +113,26 @@ Checklist after deploying a production-ready quiz:
    npx hardhat getCoupons 0x385cAE1F3afFC50097Ca33f639184f00856928Ff --network sapphire-testnet
    ```
 
+### Deploy and setup quiz with a single task
+
+You can also setup and run the entire quiz in a single task.
+
+```shell
+npx hardhat deployAndSetupQuiz --network sapphire-testnet
+```   
+
+The `deployAndSetupQuiz` task supports several optional parameters:
+
+1. **`--questions-file`**: A file containing questions in JSON format. Default value is `test-questions.json`.
+2. **`--coupons-file`**: A file containing coupons, one per line. Default value is `test-coupons.txt`.
+3. **`--reward`**: The reward in ROSE. Default value is `2.0`.
+4. **`--gasless-address`**: The payer address for gasless transactions.
+5. **`--gasless-secret`**: The payer secret key for gasless transactions.
+6. **`--fund-amount`**: The amount in ROSE to fund the contract. Default value is `100`.
+7. **`--fund-gasless-amount`**: The amount in ROSE to fund the gasless account. Default value is `10`.
+8. **`--contract-address`**: The contract address for status check.
+   
+
 Check out other hardhat tasks that will help you manage the quiz:
 
 ```shell
