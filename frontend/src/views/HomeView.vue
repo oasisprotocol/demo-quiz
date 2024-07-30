@@ -22,7 +22,7 @@ function handleError(error: Error, errorMessage: string) {
 }
 
 onMounted(async () => {
-  isReward.value = await quiz.value!.isReward();
+  isReward.value = Boolean(await quiz.value!.payoutReward() > 0);
 });
 </script>
 
@@ -61,12 +61,12 @@ onMounted(async () => {
     </RouterLink>
 
     <p class="text-white mt-5 mb-20" v-if="isReward">
-      When you solve the quiz, you will receive a <b>100 ROSE</b> reward! You
+      When you solve the quiz, you will receive a <b>1 ROSE</b> reward! You
       can use the tokens to
       <a href="https://docs.oasis.io/dapp/sapphire/quickstart" target="_blank"
         >develop a dApp</a
       >
-      🔨 and deploy it on the Mainnet. If you don't have an idea for your dApp,
+      🔨 and deploy it on the sapphire-testnet. If you don't have an idea for your dApp,
       perhaps you will find an inspiration by checking out our
       <a href="https://playground.oasis.io/" target="_blank">playground</a
       >.💡<br /><br />

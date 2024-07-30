@@ -8,7 +8,7 @@
       >
         <RouterLink to="/">
           <img
-            src="@/assets/images/logo.svg"
+            src="@/assets/logo.svg"
             class="h-6 sm:h-9"
             alt="Oasis logo"
           />

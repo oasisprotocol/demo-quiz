@@ -38,7 +38,7 @@ Deploy smart contracts to that local network:
 npx hardhat deploy --network localhost
 ```
 
-The deployed Quiz address will be reported. Remember it and store it
+The deployed Quiz and NftReward addresses will be reported. Store them
 inside the `frontend` folder's `.env.development`, for example:
 
 ```
@@ -53,13 +53,19 @@ Prepare your hex-encoded private key and store it as an environment variable:
 export PRIVATE_KEY=0x...
 ```
 
-To deploy the contracts to the [Sapphire Localnet], Testnet or Mainnet, use the
+To deploy the Quiz and Reward contracts to the [Sapphire Localnet], Testnet or Mainnet, use the
 following commands respectively:
 
 ```shell
-npx hardhat deploy --network sapphire-localnet
-npx hardhat deploy --network sapphire-testnet
-npx hardhat deploy --network sapphire
+npx hardhat deployQuiz --network sapphire-localnet
+npx hardhat deployQuiz --network sapphire-testnet
+npx hardhat deployQuiz --network sapphire
+```
+
+```shell
+npx hardhat deployNftReward --network sapphire-localnet
+npx hardhat deployNftReward --network sapphire-testnet
+npx hardhat deployNftReward --network sapphire
 ```
 
 [Sapphire Localnet]: https://github.com/oasisprotocol/oasis-web3-gateway/pkgs/container/sapphire-dev
@@ -80,7 +86,7 @@ Checklist after deploying a production-ready quiz:
     hardhat addCoupons 0x385cAE1F3afFC50097Ca33f639184f00856928Ff test-coupons.txt  --network sapphire-testnet
    ```
 
-3. Set payout reward. Example:
+3. Set ROSE payout reward amount. Example:
 
    ```shell
    npx hardhat setReward 0x385cAE1F3afFC50097Ca33f639184f00856928Ff 2.0  --network sapphire-testnet
@@ -95,18 +101,25 @@ Checklist after deploying a production-ready quiz:
    ```
 
 5. Fund the contract and the gasless account. Example:
-   
+
    ```shell
    npx hardhat fund 0x385cAE1F3afFC50097Ca33f639184f00856928Ff 100  --network sapphire-testnet # contract
    npx hardhat fund 0xd8cA6E05FC1a466992D98f5f4FFC621ca95b7229 10  --network sapphire-testnet # gasless account
    ```
 
-6. Check the quiz contract status, to make sure if everything is set. Example:
+6. Set NFT reward contract address and enable Mint from Quiz contract.
+
+   ```shell
+   npx hardhat setNftAddress 0x385cAE1F3afFC50097Ca33f639184f00856928Ff  0xB22C255250d74B0ADD1bfB936676D2a299BF48Bd --network sapphire-testnet
+   npx hardhat storeNFT 0xd8cA6E05FC1a466992D98f5f4FFC621ca95b7229 'test/assets/images/metadata_inline.json'   --network sapphire-testnet
+   ```
+
+7. Check the quiz contract status, to make sure if everything is set. Example:
 
    ```shell
    npx hardhat status 0x385cAE1F3afFC50097Ca33f639184f00856928Ff --network sapphire-testnet
    ```
-   
+
    You can also obtain details on spent coupons as follows (may take a while):
 
    ```shell
@@ -116,27 +129,53 @@ Checklist after deploying a production-ready quiz:
 ### Deploy and setup quiz with a single task
 
 You can also setup and run the entire quiz in a single task.
+`deployAndSetup` deploys and sets up the quiz and NFT reward.
 
 ```shell
-npx hardhat deployAndSetupQuiz --network sapphire-testnet
-```   
+npx hardhat deployAndSetup test-config.yaml --network sapphire-testnet
 
-The `deployAndSetupQuiz` task supports several optional parameters:
-
-1. **`--questions-file`**: A file containing questions in JSON format. Default value is `test-questions.json`.
-2. **`--coupons-file`**: A file containing coupons, one per line. Default value is `test-coupons.txt`.
-3. **`--reward`**: The reward in ROSE. Default value is `2.0`.
-4. **`--gasless-address`**: The payer address for gasless transactions.
-5. **`--gasless-secret`**: The payer secret key for gasless transactions.
-6. **`--fund-amount`**: The amount in ROSE to fund the contract. Default value is `100`.
-7. **`--fund-gasless-amount`**: The amount in ROSE to fund the gasless account. Default value is `10`.
-8. **`--contract-address`**: The contract address for status check.
-   
+```
 
 Check out other hardhat tasks that will help you manage the quiz:
 
 ```shell
 npx hardhat help
+```
+
+### A note on tests:
+
+When running tests on sapphire-localnet
+
+```shell
+npx hardhat test --network sapphire-localnet
+```
+
+avoid setting $PRIVATE_KEY environment variable, 
+unless the address associated with this key is already funded on the network. 
+
+### Additional tasks
+1. Add single question.
+
+```shell
+npx hardhat addQuestion "My question?" 0x385cAE1F3afFC50097Ca33f639184f00856928Ff --network sapphire-testnet
+```
+
+2. Clear questions.
+
+```shell
+npx hardhat clearQuestions 0x385cAE1F3afFC50097Ca33f639184f00856928Ff --network sapphire-testnet
+```
+
+3. Reclaim funds from Quiz contract.
+
+```shell
+npx hardhat reclaimFunds 0x385cAE1F3afFC50097Ca33f639184f00856928Ff 0xC66AB83418C20A65C3f8e83B3d11c8C3a6097b6F --network sapphire-testnet
+```
+
+4. Fetch from Ipfs.
+
+```shell
+npx hardhat fetchImageFromIpfs Qmbr87zRx1uGM9fGYgHXRyq4EwSZ4jSaiXwQZC7ACpNcfW output.png
 ```
 
 ## Frontend
@@ -157,7 +196,7 @@ deploy your dApp.
 You can use one of the deployed test accounts and associated private key with
 MetaMask. If you use the same MetaMask accounts on fresh local networks such as
 Hardhat Node, Foundry Anvil or sapphire-dev docker image, don't forget to
-*clear your account's activity* each time or manually specify the correct
+**clear your account's activity** each time or manually specify the correct
 account nonce.
 
 ### Frontend Deployment

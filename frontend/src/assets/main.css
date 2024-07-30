@@ -5,6 +5,7 @@
 a {
     text-decoration-line: underline;
 }
+
 input {
     @apply block my-4 p-1 mx-auto text-3xl border border-gray-400;
 }
@@ -35,3 +36,57 @@ button {
 fieldset button {
     border-style: none !important;
 }
+
+/* New styles */
+.image-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 2px;
+    position: relative;
+}
+
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 2px;
+}
+
+.grid-image {
+    width: 100%;
+    /* Ensure the image fills the grid cell */
+    height: 150px;
+    /* Set fixed height */
+    object-fit: cover;
+}
+
+.featured-container {
+    display: flex;
+    justify-content: center;
+    /* Center the featured image horizontally */
+    margin-bottom: 20px;
+    /* Space between featured image and grid */
+}
+
+.featured-image {
+    width: 165px; /* Set fixed width (110% of 150px) */
+    height: 165px; /* Set fixed height (110% of 150px) */
+    z-index: 10;
+    background-color: #f0f0f0; /* Set the desired background color */
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    border: 3px solid gold;
+  }
+  
+  /* Define the spin animation */
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+  
+  /* Animation class applied on click */
+  .animate-spin {
+    animation: spin 1s ease-in-out;
+  }
