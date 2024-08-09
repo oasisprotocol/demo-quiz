@@ -4,8 +4,13 @@ pragma solidity ^0.8.0;
 import {ERC721, ERC721Enumerable} from "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import {Base64} from "@openzeppelin/contracts/utils/Base64.sol";
 
+/**
+ * @title OasisReward
+ * @notice An ERC721 contract that allows minting of NFT rewards for Oasis Quizzes.
+ * Contains functions to mint new NFTs, generate SVG images, and retrieve token data.
+ */
 contract OasisReward is ERC721Enumerable {
-    // Mapping from token ID to IPFS URI
+    // Mapping from token ID to SVG image URI
     mapping(uint256 => string) private _tokenURIs;
 
     // Mapping from user address to list of owned token IDs
@@ -16,6 +21,7 @@ contract OasisReward is ERC721Enumerable {
     // Contract owner
     address private _owner;
 
+    // Errors
     error OnlyOwnerCanCallFunction(address caller);
     error AddressNotAllowed(address caller);
     error IncorrectImageError(string base64Encoded);
@@ -36,10 +42,7 @@ contract OasisReward is ERC721Enumerable {
         _;
     }
 
-    constructor(
-        string memory name,
-        string memory symbol
-    ) ERC721(name, symbol) {
+    constructor(string memory name, string memory symbol) ERC721(name, symbol) {
         _owner = msg.sender;
     }
 
@@ -56,7 +59,6 @@ contract OasisReward is ERC721Enumerable {
      * @param to address to mint the NFT to
      * @param base64EncodedSVG base64 encoded SVG image
      */
-    // Function to mint new tokens
     function mint(
         address to,
         string calldata base64EncodedSVG
@@ -67,7 +69,8 @@ contract OasisReward is ERC721Enumerable {
         uint256 tokenId = totalSupply();
         _tokenURIs[tokenId] = base64EncodedSVG;
         _safeMint(to, tokenId);
-        _ownedTokens[to].push(tokenId); // Add the tokenId to the list of owned tokens for the address 'to'
+        // Add the tokenId to the list of owned tokens for the address 'to'
+        _ownedTokens[to].push(tokenId);
     }
 
     /**
@@ -85,7 +88,7 @@ contract OasisReward is ERC721Enumerable {
         string memory svg = string(
             abi.encodePacked(
                 ""
-                '<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><circle cx="100" cy="100" r="50" fill="'
+                '<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="200" height="200" fill="white" /><circle cx="100" cy="100" r="50" fill="'
                 "",
                 circleColor,
                 ""
@@ -108,9 +111,9 @@ contract OasisReward is ERC721Enumerable {
      * @notice Returns the SVG base64 encoded string for a tokenID
      * @param tokenId unique identifier for the token
      */
-    function getTokenImage(
+    function tokenURI(
         uint256 tokenId
-    ) public view virtual returns (string memory) {
+    ) public view virtual override returns (string memory) {
         if (!_exists(tokenId)) {
             revert TokenNotExistError(tokenId);
         }

@@ -38,11 +38,12 @@ Deploy smart contracts to that local network:
 npx hardhat deploy --network localhost
 ```
 
-The deployed Quiz address will be reported. Remember it and store it
+The deployed Quiz and OasisReward addresses will be reported. Remember it and store it
 inside the `frontend` folder's `.env.development`, for example:
 
 ```
 VITE_QUIZ_ADDR=0x385cAE1F3afFC50097Ca33f639184f00856928Ff
+VITE_NFT_ADDR=0x3C8D74Aa9b3390Af534351dB8dcF5A65FE7C9Dd2
 ```
 
 ### Deploying to Sapphire Localnet, Testnet and Mainnet
@@ -115,13 +116,14 @@ Checklist after deploying a production-ready quiz:
 
 ### Deploy and setup quiz with a single task
 
-You can also setup and run the entire quiz in a single task.
+You can also setup and run the entire quiz in a single task. `deployAndSetupQuizGassless` and `deployAndSetupQuizNormal` both deploy and set up the quiz and NFT reward, with `deployAndSetupQuizGassless` also setting up the gasless tx.
 
 ```shell
-npx hardhat deployAndSetupQuiz --network sapphire-testnet
+npx hardhat deployAndSetupQuizGassless --network sapphire-testnet
+npx hardhat deployAndSetupQuizNormal --network sapphire-testnet
 ```   
 
-The `deployAndSetupQuiz` task supports several optional parameters:
+The `deployAndSetupQuizGasless` and `deployAndSetupQuizNormal` tasks support several optional parameters:
 
 1. **`--questions-file`**: A file containing questions in JSON format. Default value is `test-questions.json`.
 2. **`--coupons-file`**: A file containing coupons, one per line. Default value is `test-coupons.txt`.
@@ -131,13 +133,24 @@ The `deployAndSetupQuiz` task supports several optional parameters:
 6. **`--fund-amount`**: The amount in ROSE to fund the contract. Default value is `100`.
 7. **`--fund-gasless-amount`**: The amount in ROSE to fund the gasless account. Default value is `10`.
 8. **`--contract-address`**: The contract address for status check.
-   
+9. **`--user-address`**: Fund this address with 5 ROSE from deployer account, will ignore if not set.
+
 
 Check out other hardhat tasks that will help you manage the quiz:
 
 ```shell
 npx hardhat help
 ```
+### A note on tests:
+
+When running tests on sapphire-localnet
+
+```shell
+npx hardhat test --network sapphire-localnet
+```
+
+avoid setting $PRIVATE_KEY environment variable. It blocks reading default accounts from the docker localnet.
+
 
 ## Frontend
 

@@ -9,6 +9,7 @@ import {
   setGaslessKeypair,
   setReward,
 } from "./Quiz";
+require("@nomicfoundation/hardhat-chai-matchers");
 
 async function deployNFT() {
   const Reward_factory = await ethers.getContractFactory("OasisReward");
@@ -32,7 +33,7 @@ describe("OasisRewards", function () {
 
     // Compare the generated SVG base64 images
     const svg =
-      '<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><circle cx="100" cy="100" r="50" fill="red" /></svg>';
+      '<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="200" height="200" fill="white" /><circle cx="100" cy="100" r="50" fill="red" /></svg>';
     const base64EncodedSVG_test = Buffer.from(svg).toString("base64");
 
     const base64EncodedSVG = await oasisReward.generateComplexSVG(1);
@@ -79,7 +80,6 @@ describe("OasisRewards", function () {
     console.log("Balance: ", await oasisReward.balanceOf(addr1.address));
 
     // Check if an NFT was minted to the addr1
-    console.log(await oasisReward.getOwnedTokens(addr1.address));
     await expect(
       (
         await oasisReward.getOwnedTokens(addr1.address)

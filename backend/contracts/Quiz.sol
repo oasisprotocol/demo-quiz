@@ -4,11 +4,16 @@ pragma solidity ^0.8.0;
 import {Sapphire} from "@oasisprotocol/sapphire-contracts/contracts/Sapphire.sol";
 import {EIP155Signer} from "@oasisprotocol/sapphire-contracts/contracts/EIP155Signer.sol";
 import {OasisReward} from "./OasisReward.sol";
+import {Base64} from "@openzeppelin/contracts/utils/Base64.sol";
 
+/**
+ * @title Quiz
+ * @notice A contract that allows creating quizzes with questions and answers.
+ * Generates NFT rewards for correctly solving the quiz.
+ */
 contract Quiz {
     uint256 public constant COUPON_VALID = type(uint256).max - 1;
     uint256 public constant COUPON_REMOVED = type(uint256).max - 2;
-
 
     struct QuizQuestion {
         // Question.
@@ -76,7 +81,7 @@ contract Quiz {
     }
 
     modifier validCoupon(string memory coupon) {
-        if (!(_coupons[coupon] == COUPON_VALID) && _owner != msg.sender) {
+        if (_coupons[coupon] != COUPON_VALID) {
             revert InvalidCoupon(coupon);
         }
         _;
@@ -87,7 +92,11 @@ contract Quiz {
         _key = bytes32(Sapphire.randomBytes(32, ""));
     }
 
-    // Adds an new question with given choices and the correct one.
+    /**
+     * @notice Adds a new question to the quiz.
+     * @param question Question to add.
+     * @param choices List of possible answers. The first answer is always the correct one.
+     */
     function addQuestion(
         string memory question,
         string[] memory choices
@@ -96,13 +105,20 @@ contract Quiz {
         _totalChoices += choices.length;
     }
 
-    // Removes all questions.
+    /**
+     * @notice Clears all questions from the quiz.
+     */
     function clearQuestions() external onlyOwner {
         delete _questions;
         _totalChoices = 0;
     }
 
-    // Updates the existing question.
+    /**
+     * @notice Sets the question at the given index.
+     * @param questionIndex Index of the question to set.
+     * @param question New question.
+     * @param choices New choices.
+     */
     function setQuestion(
         uint256 questionIndex,
         string memory question,
@@ -113,22 +129,31 @@ contract Quiz {
         _totalChoices += choices.length;
     }
 
-    // Sets the payout reward for correctly solving the quiz.
+    /**
+     * @notice Sets the native token reward amount for solving the quiz.
+     */
     function setReward(uint256 reward) external onlyOwner {
         _reward = reward;
     }
 
-    // Gets the payout reward for correctly solving the quiz.
+    /**
+     * @notice Returns the native token reward amount for solving the quiz.
+     */
     function getReward() external view onlyOwner returns (uint256) {
         return _reward;
     }
 
-    // Returns true, if there is any kind of a reward for solving the quiz.
+    /**
+     * @notice Returns true if the quiz has a reward.
+     */
     function isReward() external view returns (bool) {
         return _reward != 0;
     }
 
-    // Registers coupons eligible for solving the quiz and claiming the reward.
+    /**
+     * @notice Adds new coupons to the quiz.
+     * @param coupons Coupons to add.
+     */
     function addCoupons(string[] calldata coupons) external onlyOwner {
         for (uint256 i = 0; i < coupons.length; i++) {
             if (_coupons[coupons[i]] == 0) {
@@ -138,12 +163,17 @@ contract Quiz {
         }
     }
 
-    // Invalidates existing coupon.
+    /**
+     * @notice Removes a coupon from the quiz.
+     * @param coupon Coupon to remove.
+     */
     function removeCoupon(string memory coupon) external onlyOwner {
         _coupons[coupon] = COUPON_REMOVED;
     }
 
-    // Returns all coupons.
+    /**
+     * @notice Returns all coupons and their status.
+     */
     function getCoupons()
         external
         view
@@ -157,7 +187,9 @@ contract Quiz {
         return (_allCoupons, status);
     }
 
-    // Counts still valid coupons.
+    /**
+     * @notice Returns the number of valid coupons.
+     */
     function countCoupons() external view onlyOwner returns (uint256, uint256) {
         uint256 cnt;
         for (uint256 i = 0; i < _allCoupons.length; i++) {
@@ -168,7 +200,10 @@ contract Quiz {
         return (cnt, _allCoupons.length);
     }
 
-    // Generates the permutation vector for all question choices.
+    /**
+     * @notice Generates a permutation vector for the given coupon.
+     * @param coupon Coupon to generate the permutation vector for.
+     */
     function getPermutationVector(
         string memory coupon
     ) private view returns (uint8[] memory) {
@@ -196,7 +231,10 @@ contract Quiz {
         return pv;
     }
 
-    // Return the index of the correct choice for all questions.
+    /**
+     * @notice Returns the correct choices for the given coupon.
+     * @param coupon Coupon to fetch the correct choices for.
+     */
     function getCorrectChoices(
         string memory coupon
     ) private view returns (uint8[] memory) {
@@ -215,7 +253,10 @@ contract Quiz {
         return correctChoices;
     }
 
-    // Find and return the questions providing valid coupon.
+    /**
+     * @notice Returns the questions for the given coupon.
+     * @param coupon Coupon to fetch the questions for.
+     */
     function getQuestions(
         string memory coupon
     ) external view validCoupon(coupon) returns (QuizQuestion[] memory) {
@@ -243,7 +284,12 @@ contract Quiz {
         return qs;
     }
 
-    // Enable gasless mode by using the provided keypair.
+    /**
+     * @notice Enable gasless mode by using the provided keypair.
+     * @param addr Address of the gasless account.
+     * @param secretKey Secret key of the gasless account.
+     * @param nonce Nonce of the gasless account.
+     */
     function setGaslessKeyPair(
         address addr,
         bytes32 secretKey,
@@ -252,7 +298,9 @@ contract Quiz {
         _kp = EthereumKeypair(addr, secretKey, nonce);
     }
 
-    // Returns the gasless keypair of the account that pays for the gas.
+    /**
+     * @notice Returns the gasless keypair of the account that pays for the gas.
+     */
     function getGaslessKeyPair()
         external
         view
@@ -261,9 +309,14 @@ contract Quiz {
         return (_kp.addr, _kp.secret, _kp.nonce);
     }
 
-    // Check provided answers and return the array of correct submissions.
-    // If all the answers are correct and the payout address is provided, returns a payout certificate that can be used to claim the reward.
-    // Generates gasless transaction, if gasless keypair is set.
+    /**
+     * @notice Checks the provided answers and returns the array of correct submissions.
+     * If all the answers are correct and the payout address is provided, returns a payout certificate that can be used to claim the reward.
+     * Generates gasless transaction, if gasless keypair is set.
+     * @param coupon Coupon to check the answers for.
+     * @param answers Answers to check.
+     * @param payoutAddr Address to send the reward to.
+     */
     function checkAnswers(
         string memory coupon,
         uint8[] memory answers,
@@ -301,7 +354,7 @@ contract Quiz {
                 EIP155Signer.EthTx({
                     nonce: _kp.nonce,
                     gasPrice: 100_000_000_000,
-                    gasLimit: 1_000_000,
+                    gasLimit: 15_000_000,
                     to: address(this),
                     value: 0,
                     data: abi.encodeCall(this.claimReward, encPc),
@@ -315,7 +368,10 @@ contract Quiz {
         return (correctVector, encPc);
     }
 
-    // Claim the reward given the payout certificate.
+    /**
+     * @notice Claims the reward for the given payout certificate.
+     * @param encPayoutCertificate Encrypted payout certificate.
+     */
     function claimReward(bytes memory encPayoutCertificate) external {
         // Decrypt, decode.
         bytes memory pcEncoded = Sapphire.decrypt(
@@ -334,10 +390,12 @@ contract Quiz {
             revert InvalidCouponError(pc.coupon);
         }
 
-        // Make a payout.
-        (bool success, ) = pc.addr.call{value: _reward}("");
-        if (!success) {
-            revert PayoutFailedError();
+        if (_makePayoutNative) {
+            // Make a payout.
+            (bool success, ) = pc.addr.call{value: _reward}("");
+            if (!success) {
+                revert PayoutFailedError();
+            }
         }
 
         if (_makePayoutNFT) {
@@ -347,14 +405,18 @@ contract Quiz {
 
         // Invalidate coupon.
         _coupons[pc.coupon] = block.number;
-    
+
         // Increase nonce, for gasless tx.
         if (msg.sender == _kp.addr) {
             _kp.nonce++;
         }
     }
 
-    // Sets the flag for making a ROSE payout and the flag for making a NFT payout
+    /**
+     * @notice Sets the flag for making a ROSE payout and the flag for making a NFT payout
+     * @param makePayoutNative Flag for making a ROSE payout
+     * @param makePayoutNFT Flag for making a NFT payout
+     */
     function setPayoutFlags(
         bool makePayoutNative,
         bool makePayoutNFT
@@ -363,14 +425,38 @@ contract Quiz {
         _makePayoutNFT = makePayoutNFT;
     }
 
-    // Adds the IDs of the NFT contract to the Quiz contract
+    /**
+     * @notice Sets the NFT contract address and generates the SVG image for the quiz.
+     * @param nftAddress NFT contract address.
+     */
     function setNft(address nftAddress) external onlyOwner {
         _quizID = uint32(block.number);
         _svgImage = OasisReward(nftAddress).generateComplexSVG(_quizID);
         _nftAddress = nftAddress;
     }
 
-    // Function to get the deployed ERC721 contract instance
+    /**
+     * @notice Sets the NFT contract address and the custom SVG image for the quiz.
+     * @param nftAddress NFT contract address.
+     * @param svgImage Custom SVG image for the quiz.
+     */
+    function setCustomNFT(
+        address nftAddress,
+        string calldata svgImage
+    ) external onlyOwner {
+        _nftAddress = nftAddress;
+
+        // Encode the entire SVG string to Base64
+        string memory base64EncodedSVG = Base64.encode(bytes(svgImage));
+        // Return the data URI for the SVG image
+        _svgImage = string(
+            abi.encodePacked("data:image/svg+xml;base64,", base64EncodedSVG)
+        );
+    }
+
+    /**
+     * @notice Returns the NFT contract address.
+     */
     function getNft() public view returns (address) {
         if (_nftAddress == address(0)) {
             revert ZeroAddressError(_nftAddress);
@@ -378,7 +464,10 @@ contract Quiz {
         return _nftAddress;
     }
 
-    // Reclaims contract funds to given address.
+    /**
+     * @notice Reclaims the funds from the contract.
+     * @param addr Address to send the funds to.
+     */
     function reclaimFunds(address addr) external onlyOwner {
         (bool success, ) = addr.call{value: address(this).balance}("");
         if (!success) {

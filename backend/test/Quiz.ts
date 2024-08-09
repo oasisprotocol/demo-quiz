@@ -81,49 +81,6 @@ describe("Quiz", function () {
     expect(receipt!.status).to.equal(1);
   });
 
-  it("Should add questions", async function () {
-    const { quiz } = await deployQuiz();
-    await addQuestions(quiz);
-
-    expect(await quiz.getQuestions("")).to.deep.equal([
-      [
-        "What's the European highest peak?",
-        [
-          "Mont Blanc",
-          "Triglav",
-          "Mount Everest",
-          "Saint Moritz",
-          "Sv. Jošt nad Kranjem",
-        ],
-      ],
-      [
-        "When was the Bitcoin whitepaper published?",
-        ["2009", "2000", "2006", "2012", "2014", "2023"],
-      ],
-    ]);
-
-    await quiz.clearQuestions();
-    expect(await quiz.getQuestions("")).to.deep.equal([]);
-
-    await addQuestions(quiz);
-    expect(await quiz.getQuestions("")).to.deep.equal([
-      [
-        "What's the European highest peak?",
-        [
-          "Mont Blanc",
-          "Triglav",
-          "Mount Everest",
-          "Saint Moritz",
-          "Sv. Jošt nad Kranjem",
-        ],
-      ],
-      [
-        "When was the Bitcoin whitepaper published?",
-        ["2009", "2000", "2006", "2012", "2014", "2023"],
-      ],
-    ]);
-  });
-
   it("Should add coupon", async function () {
     const { quiz } = await deployQuiz();
     await addCoupons(quiz);
@@ -149,6 +106,50 @@ describe("Quiz", function () {
     expect(await quiz.getCoupons()).to.deep.equal([
       ["testCoupon1", "testCoupon2"],
       [await quiz.COUPON_VALID(), await quiz.COUPON_VALID()],
+    ]);
+  });
+
+  it("Should add questions", async function () {
+    const { quiz } = await deployQuiz();
+    await addCoupons(quiz);
+    await addQuestions(quiz);
+
+    expect(await quiz.getQuestions("testCoupon1")).to.deep.equal([
+      [
+        "What's the European highest peak?",
+        [
+          "Mont Blanc",
+          "Triglav",
+          "Mount Everest",
+          "Saint Moritz",
+          "Sv. Jošt nad Kranjem",
+        ],
+      ],
+      [
+        "When was the Bitcoin whitepaper published?",
+        ["2009", "2000", "2006", "2012", "2014", "2023"],
+      ],
+    ]);
+
+    await quiz.clearQuestions();
+    expect(await quiz.getQuestions("testCoupon1")).to.deep.equal([]);
+
+    await addQuestions(quiz);
+    expect(await quiz.getQuestions("testCoupon1")).to.deep.equal([
+      [
+        "What's the European highest peak?",
+        [
+          "Mont Blanc",
+          "Triglav",
+          "Mount Everest",
+          "Saint Moritz",
+          "Sv. Jošt nad Kranjem",
+        ],
+      ],
+      [
+        "When was the Bitcoin whitepaper published?",
+        ["2009", "2000", "2006", "2012", "2014", "2023"],
+      ],
     ]);
   });
 
@@ -376,7 +377,7 @@ describe("Quiz", function () {
     )[0].sendTransaction({
       from: (await ethers.getSigners())[0],
       to: ethers.getAddress("0xDce075E1C39b1ae0b75D554558b6451A226ffe00"),
-      value: ethers.parseEther("1.00"),
+      value: ethers.parseEther("10.00"),
     });
     const fundingReceipt = await transaction.wait();
     expect(fundingReceipt).to.not.equal(null);
