@@ -1,35 +1,48 @@
 <script setup lang="ts">
-import { type ethers } from "ethers";
+import { ethers } from "ethers";
 import { onMounted, ref } from "vue";
 
-import { useQuiz } from "../contracts";
+import { useQuiz, useNFT } from "../contracts";
 import { useEthereumStore } from "../stores/ethereum";
 import AppButton from "@/components/AppButton.vue";
 import SuccessInfo from "@/components/SuccessInfo.vue";
 import CheckedIcon from "@/components/CheckedIcon.vue";
 import UncheckedIcon from "@/components/UncheckedIcon.vue";
 import QuizDetailsLoader from "@/components/QuizDetailsLoader.vue";
-
+// import { token } from "@oasisprotocol/demo-quiz-backend/lib/cjs/typechain-types/@openzeppelin/contracts";
+console.log("Debug: QuizView");
 const props = defineProps<{ coupon: string }>();
 
 const quiz = useQuiz();
 const eth = useEthereumStore();
+const nft = ref<any | null>(null);
+const addrNFT = ref("");
+const tokenReward = ref(0);
+console.log("Debug: QuizView loaded variables.");
 
 const errors = ref<string[]>([]);
 const isLoading = ref(false);
 const isCheckingAnswers = ref<Boolean>(false);
 const isClaimingReward = ref<Boolean>(false);
+const isAddingReward = ref<Boolean>(false);
 const questions = ref<Question[]>([]);
 const selectedChoices = ref<bigint[]>([]);
 const allQuestionsAnswered = ref<Boolean>(false);
 const correctVector = ref<boolean[]>([]);
 const address = ref("");
+const isSpinning = ref(false);
 
 const couponValid = ref<Boolean>(false);
 const answersChecked = ref<Boolean>(false);
 const answersCorrect = ref<Boolean>(false);
-const isReward = ref<Boolean>(false);
 const rewardClaimed = ref<Boolean>(false);
+const nftClaimed = ref<Boolean>(false);
+const tokenClaimed = ref<Boolean>(false);
+const userImages = ref<string[]>([]);
+const tokenId = ref<string>("");
+
+console.log("Debug: QuizView loaded variables 2.");
+
 
 interface Questions {
   questions: Question[];
@@ -46,7 +59,12 @@ function handleError(error: Error, errorMessage: string) {
   console.error(error);
 }
 
+async function fetchNFTAddress(){
+
+}
+
 async function onChoiceClick(qId: number, choiceId: number): Promise<void> {
+  console.log("Debug: Choice clicked");
   selectedChoices.value[qId] = BigInt(choiceId);
 
   let allAns = true;
@@ -60,6 +78,7 @@ async function onChoiceClick(qId: number, choiceId: number): Promise<void> {
 }
 
 async function doCheckAnswers(): Promise<void> {
+  console.log("Debug: Checking answers");
   const [cv, gaslessTx] = await quiz.value!.checkAnswers(
     props.coupon,
     selectedChoices.value,
@@ -79,11 +98,15 @@ async function doCheckAnswers(): Promise<void> {
 
 async function fetchQuestions(): Promise<void> {
   try {
+    console.log("Debug: Fetching questions");
+    addrNFT.value = await quiz.value!.nftAddress();
+    // tokenReward.value = await quiz.value!.getTokenReward();
+    nft.value = useNFT(addrNFT.value).value;
     isLoading.value = true;
     questions.value = await quiz.value!.getQuestions(props.coupon);
-    isReward.value = await quiz.value!.isReward();
     selectedChoices.value = Array(questions.value.length); // prepare an array of undefined values until the answer is selected.
     couponValid.value = true;
+    console.log("Debug: Questions fetched");
   } catch (e) {
     handleError(e as Error, "Coupon not valid");
   } finally {
@@ -91,12 +114,37 @@ async function fetchQuestions(): Promise<void> {
   }
 }
 
+async function fetchImages(): Promise<void> {
+  console.log("Debug: Fetching images");
+  try {
+    console.log(address.value);
+    isLoading.value = true;
+    console.log("Debug: Fetching images");
+    const tokens = await nft.value!.getOwnedTokens(address.value);
+    console.log(tokens);
+    for (let i = 0; i < tokens.length; i++) {
+      console.log(tokens[i]);
+      const tokenURI = await nft.value!.tokenURI(tokens[i]);
+      const modifiedTokenURI = tokenURI.replace("ipfs://", "https://ipfs.io/ipfs/");
+      const response = await fetch(modifiedTokenURI);
+      const metadata = await response.json();
+      userImages.value.push(metadata.image.replace("ipfs://", "https://ipfs.io/ipfs/"));
+      console.log(metadata);
+    }
+  } catch (e) {
+    handleError(e as Error, "Image not valid");
+  } finally {
+    isLoading.value = false;
+  }
+}
+
 async function claimReward(e: Event): Promise<void> {
+  console.log("Debug: Claiming reward");
   if (e.target instanceof HTMLFormElement) {
     e.target.checkValidity();
     if (!e.target.reportValidity()) return;
   }
-
+  console.log("Debug: Claiming reward");
   e.preventDefault();
 
   const TIMEOUT_LIMIT = 100;
@@ -105,20 +153,89 @@ async function claimReward(e: Event): Promise<void> {
     try {
       isClaimingReward.value = true;
       console.log(address.value);
+      let receipt;
+      const gaslessKeyPair = await quiz.value!.getGaslessKeyPair();
       const [cv, gaslessTx] = await quiz.value!.checkAnswers(
         props.coupon,
         selectedChoices.value,
         ethers.getAddress(address.value)
       );
-      console.log(cv);
       console.log(gaslessTx);
-      let receipt = await (
-        await eth.provider.broadcastTransaction(gaslessTx)
-      ).wait(); // gasless version
-      //let receipt = await (await quiz.value!.claimReward(gaslessTx)).wait(); // standard version
-      console.log("receipt.status: " + receipt!.status);
-      if (receipt!.status == 1) {
+      // If gasless KeyPair is set, checkAnswers will return gaslessTx
+      if (gaslessKeyPair[0] !== ethers.ZeroAddress) {
+        console.log(cv);
+        console.log(gaslessTx);
+        receipt = await (
+          await eth.provider.broadcastTransaction(gaslessTx)
+        ).wait(); // gasless version
+        console.log("Transaction confirmed");
         rewardClaimed.value = true;
+        if ((quiz.value) && (addrNFT.value !== '0x0000000000000000000000000000000000000000'))
+        {
+          tokenId.value = (
+            (await nft.value!.totalSupply()) - BigInt(1)
+          ).toString();
+        }
+
+      } else {
+        console.log("Requesting account access");
+        // Check the network chain ID
+        const chainId = await window.ethereum.request({
+          method: "eth_chainId",
+        });
+        const expectedChainId = import.meta.env.VITE_NETWORK!;
+        const rpcUrl = import.meta.env.VITE_WEB3_GATEWAY!;
+        const chainName = import.meta.env.VITE_CHAIN_NAME!;
+
+        if (chainId !== expectedChainId) {
+          // Request network change
+          await window.ethereum.request({
+            method: "wallet_addEthereumChain",
+            params: [
+              {
+                chainId: expectedChainId,
+                rpcUrls: [rpcUrl],
+                chainName: chainName,
+                blockExplorerUrls: [], //["https://explorer.oasis.io/testnet/sapphire"],
+                nativeCurrency: {
+                  name: "ROSE",
+                  symbol: "ROSE",
+                  decimals: 18,
+                },
+              },
+            ],
+          });
+        }
+        // Request MetaMask account access
+        await window.ethereum.request({ method: "eth_requestAccounts" });
+        console.log("MetaMask is connected and on the correct network");
+        // Create a provider and signer
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const signer = await provider.getSigner();
+
+        const quizWithSigner = quiz.value!.connect(signer);
+
+        try {
+          // Send the transaction
+          const tx_hash = await quizWithSigner.claimReward(gaslessTx);
+          console.log("Transaction sent:", tx_hash);
+          await tx_hash.wait();
+          console.log("Transaction confirmed");
+          rewardClaimed.value = true;
+          
+          if ((quiz.value) && (addrNFT.value !== '0x0000000000000000000000000000000000000000'))
+          {
+            tokenId.value = (
+              (await nft.value!.totalSupply()) - BigInt(1)
+            ).toString();
+          }
+        } catch (error) {
+          console.error(
+            "User denied transaction signature or error occurred:",
+            error
+          );
+          return;
+        }
       }
     } catch (e: any) {
       if (++timeout == TIMEOUT_LIMIT) {
@@ -126,10 +243,16 @@ async function claimReward(e: Event): Promise<void> {
       }
     }
   }
+  if (addrNFT.value !== '0x0000000000000000000000000000000000000000')
+  {
+    await fetchImages();
+  }
+
   isClaimingReward.value = false;
 }
 
 async function checkAnswers(e: Event): Promise<void> {
+  console.log("Debug: Checking answers");
   e.preventDefault();
   try {
     isCheckingAnswers.value = true;
@@ -141,10 +264,82 @@ async function checkAnswers(e: Event): Promise<void> {
   }
 }
 
+const addNFTToMetaMask = async () => {
+  console.log("Debug: Adding NFT to MetaMask");
+  try {
+    isAddingReward.value = true;
+
+    if (typeof window.ethereum !== "undefined") {
+      await window.ethereum.request({ method: "eth_requestAccounts" });
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+
+      const imageUrl = userImages.value[userImages.value.length - 1];
+      console.log(imageUrl);
+      console.log("Requesting account access");
+      // Check the network chain ID
+      const chainId = await window.ethereum.request({
+        method: "eth_chainId",
+      });
+      const expectedChainId = import.meta.env.VITE_NETWORK!;
+      const rpcUrl = import.meta.env.VITE_WEB3_GATEWAY!;
+      const chainName = import.meta.env.VITE_CHAIN_NAME!;
+      if (chainId !== expectedChainId) {
+          // Request network change
+          await window.ethereum.request({
+            method: "wallet_addEthereumChain",
+            params: [
+              {
+                chainId: expectedChainId,
+                rpcUrls: [rpcUrl],
+                chainName: chainName,
+                nativeCurrency: {
+                  name: "ROSE",
+                  symbol: "ROSE",
+                  decimals: 18,
+                },
+              },
+            ],
+          });
+        }
+      await window.ethereum.request({
+        method: "wallet_watchAsset",
+        params: {
+          type: "ERC721",
+          options: {
+            address: addrNFT.value,
+            tokenId: tokenId.value,
+            // image: imageUrl,
+          },
+        },
+      });
+
+      console.log("NFT added to MetaMask successfully");
+    } else {
+      console.error("MetaMask is not installed");
+    }
+  } catch (error) {
+    console.error("Error adding NFT to MetaMask:", error);
+  } finally {
+    isAddingReward.value = false;
+  }
+};
+
+// Method to handle the click event
+const handleClick = () => {
+  isSpinning.value = true;
+
+  // Remove the class after the animation duration to allow repeated clicks
+  setTimeout(() => {
+    isSpinning.value = false;
+  }, 1000); // Duration matches the animation length (1s)
+};
+
 onMounted(async () => {
   await fetchQuestions();
 });
 </script>
+
 
 <template>
   <div v-if="errors.length > 0" class="text-red-500 px-3 mt-5 rounded-xl-sm">
@@ -219,14 +414,14 @@ onMounted(async () => {
       </h2>
     </SuccessInfo>
 
-    <section v-if="isReward">
+    <section>
       <p class="text-white text-base mb-5 mt-10">
         To claim the reward, enter your account address below. You will receive
-        ROSE on the
+        it on the
         <a
           href="https://docs.oasis.io/dapp/sapphire/#chain-information"
           target="_blank"
-          >Oasis Sapphire Mainnet</a
+          >Oasis Sapphire Testnet</a
         >
         chain.
       </p>
@@ -249,14 +444,13 @@ onMounted(async () => {
             <span class="text-red-500">*</span>
           </label>
         </div>
-
         <AppButton
           class="mb-20 no-capitalize"
           type="submit"
           variant="primary"
-          :disabled="isClaimingReward"
+          :disabled="isAddingReward"
         >
-          <span class="normal-case" v-if="isClaimingReward"
+          <span class="normal-case" v-if="isAddingReward"
             >Generating transaction and sending reward…</span
           >
           <span class="normal-case" v-else>Claim your reward</span>
@@ -266,13 +460,42 @@ onMounted(async () => {
   </section>
   <section v-if="rewardClaimed">
     <SuccessInfo class="mb-20">
-      <h2 class="text-white text-3xl mb-10">Your NFT:</h2>
-      <img
-        src="@/assets/images/Capture2.PNG"
-        alt="Reward Image"
-        class="mb-10"
-      />
+      <section v-if=" addrNFT !== '0x0000000000000000000000000000000000000000'">
+        <h2 class="text-white text-3xl mb-10">
+        Congratulations, you received an NFT:
+        </h2>
+        <div class="featured-container">
+        <img
+          v-if="userImages.length > 0"
+          :src="userImages[userImages.length - 1]"
+          :key="userImages[userImages.length - 1]"
+          alt="Featured"
+          :class="['featured-image', { 'animate-spin': isSpinning }]"
+          @click="handleClick"
+        />
+        </div>
+        <p class="text-white">
+          Token ID: <strong>{{ tokenId }}</strong>
+        </p>
+        <p class="text-white mb-10">
+          NFT Contract Address: <strong>{{ addrNFT }}</strong>
+        </p>
+      </section>
+
       <h3 class="text-white text-3xl mb-10">Reward claimed!</h3>
+      <section v-if=" addrNFT !== '0x0000000000000000000000000000000000000000'">
+        <AppButton
+          class="mb-20 no-capitalize"
+          type="submit"
+          variant="primary"
+          @click="addNFTToMetaMask"
+        >
+          <span class="normal-case" v-if="isAddingReward"
+            >Adding NFT to MetaMask...</span
+          >
+          <span class="normal-case" v-else>Add reward to wallet</span>
+        </AppButton>
+      </section>
       <p class="text-white">
         Check out our
         <a href="https://docs.oasis.io/dapp/sapphire/quickstart" target="_blank"

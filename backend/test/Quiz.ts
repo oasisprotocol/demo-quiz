@@ -2,7 +2,7 @@ import { expect } from "chai";
 import { ethers } from "hardhat";
 import { Quiz, Quiz__factory } from "../typechain-types";
 import { getDefaultProvider, JsonRpcProvider, toBigInt } from "ethers";
-import { deployNFT } from "./OasisRewards";
+import { deployNFT } from "./NftReward";
 
 async function deployQuiz() {
   const Quiz_factory = await ethers.getContractFactory("Quiz");
@@ -55,7 +55,7 @@ async function setGaslessKeypair(quiz: Quiz) {
 }
 
 async function setReward(quiz: Quiz) {
-  await quiz.setReward(ethers.parseEther("10.00"));
+  await quiz.setPayoutReward(ethers.parseEther("10.00"));
 }
 
 export {
@@ -79,49 +79,6 @@ describe("Quiz", function () {
     });
     const receipt = await tx.wait();
     expect(receipt!.status).to.equal(1);
-  });
-
-  it("Should add questions", async function () {
-    const { quiz } = await deployQuiz();
-    await addQuestions(quiz);
-
-    expect(await quiz.getQuestions("")).to.deep.equal([
-      [
-        "What's the European highest peak?",
-        [
-          "Mont Blanc",
-          "Triglav",
-          "Mount Everest",
-          "Saint Moritz",
-          "Sv. Jošt nad Kranjem",
-        ],
-      ],
-      [
-        "When was the Bitcoin whitepaper published?",
-        ["2009", "2000", "2006", "2012", "2014", "2023"],
-      ],
-    ]);
-
-    await quiz.clearQuestions();
-    expect(await quiz.getQuestions("")).to.deep.equal([]);
-
-    await addQuestions(quiz);
-    expect(await quiz.getQuestions("")).to.deep.equal([
-      [
-        "What's the European highest peak?",
-        [
-          "Mont Blanc",
-          "Triglav",
-          "Mount Everest",
-          "Saint Moritz",
-          "Sv. Jošt nad Kranjem",
-        ],
-      ],
-      [
-        "When was the Bitcoin whitepaper published?",
-        ["2009", "2000", "2006", "2012", "2014", "2023"],
-      ],
-    ]);
   });
 
   it("Should add coupon", async function () {
@@ -152,8 +109,52 @@ describe("Quiz", function () {
     ]);
   });
 
+  it("Should add questions", async function () {
+    const { quiz } = await deployQuiz();
+    await addCoupons(quiz);
+    await addQuestions(quiz);
+
+    expect(await quiz.getQuestions("testCoupon1")).to.deep.equal([
+      [
+        "What's the European highest peak?",
+        [
+          "Mont Blanc",
+          "Triglav",
+          "Mount Everest",
+          "Saint Moritz",
+          "Sv. Jošt nad Kranjem",
+        ],
+      ],
+      [
+        "When was the Bitcoin whitepaper published?",
+        ["2009", "2000", "2006", "2012", "2014", "2023"],
+      ],
+    ]);
+
+    await quiz.clearQuestions();
+    expect(await quiz.getQuestions("testCoupon1")).to.deep.equal([]);
+
+    await addQuestions(quiz);
+    expect(await quiz.getQuestions("testCoupon1")).to.deep.equal([
+      [
+        "What's the European highest peak?",
+        [
+          "Mont Blanc",
+          "Triglav",
+          "Mount Everest",
+          "Saint Moritz",
+          "Sv. Jošt nad Kranjem",
+        ],
+      ],
+      [
+        "When was the Bitcoin whitepaper published?",
+        ["2009", "2000", "2006", "2012", "2014", "2023"],
+      ],
+    ]);
+  });
+
   it("User should get questions", async function () {
-    if ((await ethers.provider.getNetwork()).chainId != 1337) {
+    if ((await ethers.provider.getNetwork()).chainId != BigInt(1337)) {
       // https://github.com/oasisprotocol/sapphire-paratime/issues/197
       this.skip();
     }
@@ -183,10 +184,10 @@ describe("Quiz", function () {
 
   it("Should set reward", async function () {
     const { quiz } = await deployQuiz();
-    expect(await quiz.isReward()).to.equal(false);
+    expect(await quiz.payoutReward()).to.equal(0);
     await setReward(quiz);
-    expect(await quiz.getReward()).to.equal(10_000_000_000_000_000_000n);
-    expect(await quiz.isReward()).to.equal(true);
+    expect(await quiz.payoutReward()).to.equal(10_000_000_000_000_000_000n);
+    expect(await quiz.payoutReward() > 0).to.equal(true);
   });
 
   it("Should reclaim funds", async function () {
@@ -213,7 +214,7 @@ describe("Quiz", function () {
   });
 
   it("User should check answers", async function () {
-    if ((await ethers.provider.getNetwork()).chainId != 1337) {
+    if ((await ethers.provider.getNetwork()).chainId != BigInt(1337)) {
       // Requires non-randomized seed.
       this.skip();
     }
@@ -320,10 +321,10 @@ describe("Quiz", function () {
       this.skip();
     }
     const { quiz } = await deployQuiz();
-    const { oasisReward } = await deployNFT();
+    const { nftReward } = await deployNFT();
 
-    await oasisReward.addAllowMint(quiz.getAddress());
-    await quiz.setNft(oasisReward.getAddress());
+    await nftReward.addAllowMint(quiz.getAddress());
+    await quiz.setNftAddress(nftReward.getAddress());
     await addOneQuestion(quiz);
     await addCoupons(quiz);
     await setReward(quiz);
@@ -362,10 +363,10 @@ describe("Quiz", function () {
       this.skip();
     }
     const { quiz } = await deployQuiz();
-    const { oasisReward } = await deployNFT();
+    const { nftReward } = await deployNFT();
 
-    await oasisReward.addAllowMint(quiz.getAddress());
-    await quiz.setNft(oasisReward.getAddress());
+    await nftReward.addAllowMint(quiz.getAddress());
+    await quiz.setNftAddress(nftReward.getAddress());
     await addOneQuestion(quiz);
     await addCoupons(quiz);
     await setReward(quiz);
@@ -376,7 +377,7 @@ describe("Quiz", function () {
     )[0].sendTransaction({
       from: (await ethers.getSigners())[0],
       to: ethers.getAddress("0xDce075E1C39b1ae0b75D554558b6451A226ffe00"),
-      value: ethers.parseEther("1.00"),
+      value: ethers.parseEther("10.00"),
     });
     const fundingReceipt = await transaction.wait();
     expect(fundingReceipt).to.not.equal(null);
