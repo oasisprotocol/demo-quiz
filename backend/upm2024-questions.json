@@ -1,0 +1,86 @@
+[
+  {
+    "question": "Katerega leta je Satoshi Nakamoto objavil idejo (whitepaper) za bitcoin?",
+    "choices": ["2008", "2000", "2009", "2013"]
+  },
+  {
+    "question": "Kaj je bitcoin?",
+    "choices": [
+      "Porazdeljeno omrežje računalnikov, ki omogoča prenos vrednosti po internetu brez cenzure in omejitev",
+      "Najnovejše omrežje, ki ga je zasnovala skupnost razvijalcev Oasis in je združljiv z orodji Ethereum",
+      "Kriptovaluta, zasnovana za kriminalce in malopridneže"
+    ]
+  },
+  {
+    "question": "Kaj je Ethereum?",
+    "choices": [
+      "Porazdeljeno omrežje, ki je dobilo navdih v bitcoinu in omogoča poleg enostavnejših transakcij tudi izvajanje splošnih programov",
+      "Kremni namaz, ki ga je leta 1982 zasnovala Kolinska",
+      "Model samodejnega menjalnika, razvit v nemškem koncernu Volkswagen AG"
+    ]
+  },
+  {
+    "question": "Kaj je glavna knjiga (ledger)?",
+    "choices": [
+      "Povezan seznam blokov, kjer vsak vsebuje transakcije in zgoščeno vrednost prejšnjega bloka, da zagotovi verodostojnost podatkov",
+      "Politični manifest nasprotnikov velikih bank in liberalnega kapitalizma, napisana leta 2008 ob izbruhu svetovne finančne krize",
+      "Starodavna verska knjiga Keltov, odkrita leta 1998 blizu kraja Bath na zahodu Anglije"
+    ]
+  },
+  {
+    "question": "Koliko je pričakovani čas za potrditev bloka na omrežju Oasis Sapphire?",
+    "choices": [
+      "6 sekund",
+      "12 sekund",
+      "10 minut"
+    ]
+  },
+  {
+    "question": "V katerem programskem jeziku običajno pišemo programe za Ethereumov navidezni stroj (Ethereum Virtual Machine)?",
+    "choices": [
+      "Solidity",
+      "C",
+      ".Net"
+    ]
+  },
+  {
+    "question": "Kaj je Oasis Sapphire?",
+    "choices": [
+      "Porazdeljeno omrežje, združljivo z razvojnimi orodji za Ethereum, ki omogoča izvajanje programov na tajen način",
+      "Podjetje, ki se že od leta 1962 ukvarja s proizvodnjo in distribucijo vode na Bližnjem zahodu, Afriki in osrednji Aziji",
+      "Rudnik diamantov na jugo-vzhodu Južne Afrike"
+    ]
+  },
+  {
+    "question": "Kako se imenuje lastna kriptovaluta, ki jo uporablja omrežje Oasis?",
+    "choices": [
+      "ROSE",
+      "OAS",
+      "BTC"
+    ]
+  },
+  {
+    "question": "Kateri od spodnjih naslovov je veljaven naslov denarnice v omrežjih Ethereum in Oasis Sapphire?",
+    "choices": [
+      "0xDce075E1C39b1ae0b75D554558b6451A226ffe00",
+      "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh",
+      "surely89@oasis.io"
+    ]
+  },
+  {
+    "question": "Kateri od spodnjih je veljaven zasebni ključ denarnice v omrežjih Ethereum in Oasis Sapphire",
+    "choices": [
+      "0xc0e43d8755f201b715fd5a9ce0034c568442543ae0a0ee1aec2985ffe40edb99",
+      "0b00110010010010001011100100100010111010100101010011010110101010",
+      "L1bdCJ1nZXxdHNWwDw8hVuQoqgZEue1kVtPE1SWXRwbJxQkfRTvT"
+    ]
+  },
+  {
+    "question": "Kaj je Oasis ROFL?",
+    "choices": [
+      "Oasisova tehnologija, ki s pomočjo blockchaina omogoča varno in zasebno poganjanje aplikacij",
+      "\uD83D\uDE42",
+      "Pecivo, katerega osnovna sestavina je krompir in izvira iz severnega nemškega mesta Düsseldorf"
+    ]
+  }
+]

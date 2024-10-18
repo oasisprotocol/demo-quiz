@@ -222,7 +222,7 @@ async function claimReward(e: Event): Promise<void> {
           await tx_hash.wait();
           console.log("Transaction confirmed");
           rewardClaimed.value = true;
-          
+
           if ((quiz.value) && (addrNFT.value !== '0x0000000000000000000000000000000000000000'))
           {
             tokenId.value = (
@@ -398,8 +398,8 @@ onMounted(async () => {
             :disabled="isLoading || !allQuestionsAnswered"
             @click="checkAnswers"
           >
-            <span v-if="isCheckingAnswers">Checking answers…</span>
-            <span v-else>Check my answers</span>
+            <span v-if="isCheckingAnswers">Preverjam odgovore…</span>
+            <span v-else>Preveri odgovore</span>
           </AppButton>
         </div>
       </form>
@@ -410,20 +410,14 @@ onMounted(async () => {
   <section class="pt-5" v-if="answersCorrect && !rewardClaimed">
     <SuccessInfo>
       <h2 class="text-2xl text-white text-base mb-5 mt-10">
-        You Solved the Quiz!
+        Kviz ste uspešno rešili!
       </h2>
     </SuccessInfo>
 
     <section>
       <p class="text-white text-base mb-5 mt-10">
-        To claim the reward, enter your account address below. You will receive
-        it on the
-        <a
-          href="https://docs.oasis.io/dapp/sapphire/#chain-information"
-          target="_blank"
-          >Oasis Sapphire Testnet</a
-        >
-        chain.
+        Če želite prejeti nagrado, v spodnje polje vpišite naslov vaše kriptodenarnice.
+        Kovančke ROSE boste prejeli na verigi <a href="https://docs.oasis.io/dapp/sapphire/#chain-information" target="_blank">Oasis Sapphire Mainnet</a>.
       </p>
       <form @submit="claimReward">
         <div class="form-group">
@@ -440,10 +434,27 @@ onMounted(async () => {
             for="addressText"
             class="peer-focus:text-primaryDark peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-5"
           >
-            Your address (0x...):
+            Vaš naslov (0x...):
             <span class="text-red-500">*</span>
           </label>
         </div>
+        <details class="text-white mb-5">
+          <summary class="cursor-pointer mb-3 text-right">Kaj je kriptodenarnica?</summary>
+          <p class="ml-3.5">
+            Kriptodenarnica hrani vaš zasebni ključ, s katerim podpisujete različne
+            transakcije na omrežju, na primer za pošiljanje vašega virtualnega
+            denarja. Denarnica je lahko v obliki
+            samostojne aplikacije na računalniku ali telefonu, kot razširitev za
+            spletni brskalnik, lahko pa je samostojna naprava, saj je s tem najbolj
+            odporna na zlonamerno kodo, ki bi lahko odtujila vaš zasebni ključ.</p>
+          <p class="ml-3.5 mb-10">
+            Če ste začetnik in zasebnega ključa še nimate, predlagamo uporabo
+            denarnice <a href="https://metamask.io/download/" target="_blank">Metamask</a>.
+            Po namestitvi ne pozabite povezati denarnice z omrežjem Oasis Sapphire. To
+            najlažje storite s pritiskom na enega od gumbov "Add to Metamask" v seznamu
+            <a href="https://docs.oasis.io/dapp/sapphire/#rpc-endpoints" target="_blank">dostopnih točk Mainnet</a>.
+          </p>
+        </details>
         <AppButton
           class="mb-20 no-capitalize"
           type="submit"
@@ -451,9 +462,9 @@ onMounted(async () => {
           :disabled="isAddingReward"
         >
           <span class="normal-case" v-if="isAddingReward"
-            >Generating transaction and sending reward…</span
+            >Generiram transakcijo in pošiljam nagrado…</span
           >
-          <span class="normal-case" v-else>Claim your reward</span>
+          <span class="normal-case" v-else>Prejmi nagrado</span>
         </AppButton>
       </form>
     </section>
@@ -482,7 +493,7 @@ onMounted(async () => {
         </p>
       </section>
 
-      <h3 class="text-white text-3xl mb-10">Reward claimed!</h3>
+      <h3 class="text-white text-3xl mb-10">Hvala za sodelovanje v nagradnem kvizu!</h3>
       <section v-if=" addrNFT !== '0x0000000000000000000000000000000000000000'">
         <AppButton
           class="mb-20 no-capitalize"
@@ -497,17 +508,11 @@ onMounted(async () => {
         </AppButton>
       </section>
       <p class="text-white">
-        Check out our
-        <a href="https://docs.oasis.io/dapp/sapphire/quickstart" target="_blank"
-          >Oasis Sapphire quickstart</a
-        >
-        and start building!
+        Vabljeni, da sprogramirate <a href="https://docs.oasis.io/dapp/sapphire/quickstart" target="_blank">aplikacijo na omrežju Oasis Sapphire.</a>
       </p>
       <p class="text-white">
-        If you need help, contact us on the Oasis
-        <a href="https://oasis.io/discord" target="_blank"
-          >#dev-central Discord channel</a
-        >.
+        <br/>
+        Če potrebujete pomoč ali pa želite svoje znanje deliti ostalim, se pridružite slovenski skupnosti Oasis na <a href="https://oasis.io/discord" target="_blank">Discord kanalu #slovenia 🇸🇮 </a>.
       </p>
     </SuccessInfo>
   </section>

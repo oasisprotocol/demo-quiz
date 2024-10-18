@@ -1,0 +1,6 @@
+questionsFile: "upm2024-questions.json"
+couponsFile: "upm2024-coupons.txt"
+nativeReward: "100"
+gaslessSecret: "0x5afe82207cef82c9ffe94e31386b889029c61b1a21d2513ff14af9d366d9372d"
+fundGaslessAmount: "2"
+fundAmount: "6000" # 60 * 100
