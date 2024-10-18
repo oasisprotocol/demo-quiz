@@ -15,9 +15,19 @@ import { HardhatUserConfig, task } from 'hardhat/config';
 import 'solidity-coverage';
 
 import {
-    storeNFT, fundContract, fundGaslessAccount, setGaslessKeyPair,
-    deployContract, addQuestions, setNativeReward, addCoupons,
-    addAllowMint, setNftAddress, loadYamlConfig, removeAllowMint
+  storeNFT,
+  fundAccount,
+  setGaslessKeyPair,
+  deployContract,
+  addQuestions,
+  setNativeReward,
+  addCoupons,
+  addAllowMint,
+  setNftAddress,
+  loadYamlConfig,
+  removeAllowMint,
+  genCoupons,
+  printAccount
 } from './helpers';
 
 
@@ -136,7 +146,7 @@ task('status')
 
         console.log(`Reward (in native token): ${hre.ethers.formatEther(await quiz.payoutReward())} ROSE`)
         console.log(`Payout Balance: ${hre.ethers.formatEther(await hre.ethers.provider.getBalance(await quiz.getAddress()))} ROSE`)
-        
+
         const gaslessKeyPair = await quiz.getGaslessKeyPair();
         console.log("Gasless signer:");
         console.log(` Address: ${gaslessKeyPair[0]}`)
@@ -205,6 +215,17 @@ task('addCoupons')
         await addCoupons(quiz, args.couponsFile);
     });
 
+// Generate unique coupons suitable for the coupons file.
+task('genCoupons')
+  .addPositionalParam('n', 'number of coupons')
+  .addPositionalParam('l', 'length of each coupon')
+  .setAction(async (args, hre) => {
+    const coupons = await genCoupons(args.n, args.l);
+    for (let i=0; i<coupons.length; i++) {
+      console.log(coupons[i]);
+    }
+  });
+
 // Fetch image from IPFS.
 task('storeNft')
     .addPositionalParam('quiz', 'Quiz contract')
@@ -247,10 +268,9 @@ task('fund')
     .addPositionalParam('address', 'contract address')
     .addPositionalParam('amount', 'amount in ROSE')
     .setAction(async (args, hre) => {
-        const quiz = await hre.ethers.getContractAt('Quiz', args.address);
-        await fundContract(hre,
-            quiz,
-            args.amount
+        await fundAccount(hre,
+          args.address,
+          args.amount
         );
     });
 
@@ -270,12 +290,11 @@ task('reclaimFunds')
 // Set gasless key-pair.
 task('setGaslessKeyPair')
     .addPositionalParam('address', 'contract address')
-    .addPositionalParam('payerAddress', 'payer address')
     .addPositionalParam('payerSecret', 'payer secret key')
     .setAction(async (args, hre) => {
         const quiz = await hre.ethers.getContractAt('Quiz', args.address);
-        const nonce = await hre.ethers.provider.getTransactionCount(args.payerAddress);
-        await setGaslessKeyPair(quiz, args.payerAddress, args.payerSecret, nonce);
+        const nonce = await hre.ethers.provider.getTransactionCount(hre.ethers.computeAddress(args.payerSecret));
+        await setGaslessKeyPair(hre, quiz, args.payerSecret, nonce);
     });
 
 // Fetch image from IPFS.
@@ -303,21 +322,13 @@ task('deployAndSetup')
         // Load default configuration from YAML file
         // const defaultConfig = await loadYamlConfig(path.resolve(__dirname, args.configFile));
         const cfg = await loadYamlConfig(args.configFile);
-
-        console.log(`Questions File: ${cfg.questionsFile}`);
-        console.log(`Coupons File: ${cfg.couponsFile}`);
-        console.log(`Reward: ${cfg.nativeReward}`);
-        console.log(`Fund Amount: ${cfg.fundAmount}`);
-        console.log(`Metadata file path: ${cfg.nftReward.metadataFile}`);
-        console.log(`Fund gasless amount: ${cfg.fundGaslessAmount}`);
-        console.log(`Gasless Address: ${cfg.gaslessAddress}`);
-        console.log(`Gasless Secret: ${cfg.gaslessSecret}`);
-
+        const signerAddr = (await hre.ethers.getSigners())[0].address;
+        await printAccount(hre, signerAddr);
 
         const quiz = await hre.run("deployQuiz");
         await hre.run("addQuestions", { address: quiz, questionsFile: cfg.questionsFile })
         await hre.run("addCoupons", { address: quiz, couponsFile: cfg.couponsFile })
-        
+
         if (cfg.fundAmount)
         {
             await hre.run("fund", { address: quiz, amount: cfg.fundAmount });
@@ -328,27 +339,25 @@ task('deployAndSetup')
             await hre.run("setNativeReward", { address: quiz, reward: cfg.nativeReward });
         }
         // Set gasless key pair if provided
-        if (cfg.gaslessAddress && cfg.gaslessSecret) {
-            await hre.run("setGaslessKeyPair", { address: quiz, payerAddress: cfg.gaslessAddress, payerSecret: cfg.gaslessSecret });
-            if (cfg.fundGaslessAmount)
-            {
-                await hre.run("fund", { address: cfg.gaslessAddress, amount: cfg.fundGaslessAmount });
+        if (cfg.gaslessSecret) {
+            await hre.run("setGaslessKeyPair", { address: quiz, payerSecret: cfg.gaslessSecret });
+            if (cfg.fundGaslessAmount) {
+                await hre.run("fund", { address: hre.ethers.computeAddress(cfg.gaslessSecret), amount: cfg.fundGaslessAmount });
             }
-            
         }
 
         if (cfg.nftReward) {
             let nftReward;
             if (cfg.nftReward.address) {
                 nftReward = await hre.ethers.getContractAt('NftReward', cfg.nftReward.address);
-            }
-            else{
+            } else {
                 nftReward = await hre.run("deployNftReward", {name: cfg.nftReward.name, symbol: cfg.nftReward.symbol })
             }
             await hre.run("setNftAddress", { address: quiz, nftAddress: nftReward })
             await hre.run("addAllowMint", { rewardContract: nftReward, minterAddress: quiz })
             await hre.run("storeNft", {quiz: quiz, jsonFile: cfg.nftReward.metadataFile })
-
         }
+
+      await printAccount(hre, signerAddr);
     });
 
