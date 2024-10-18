@@ -11,16 +11,38 @@ import '@typechain/hardhat';
 import 'hardhat-watcher';
 import 'solidity-coverage';
 import { HardhatEthersSigner, SignerWithAddress } from '@nomicfoundation/hardhat-ethers/signers';
-import { ethers } from 'hardhat';
 
 export async function loadYamlConfig(filePath: string): Promise<any> {
-  try {
-    const fileContents = await promises.readFile(filePath, 'utf8');
-    return yaml.load(fileContents);
-  } catch (error) {
-    console.error("Error reading YAML file", error);
-    return {};
+  const fileContents = await promises.readFile(filePath, 'utf8');
+  return yaml.load(fileContents);
+}
+
+/**
+ * Generates n unique coupons of length l.
+ * @param n number of coupons
+ * @param l length of each coupon
+ * @returns List of unique coupon strings
+ */
+export async function genCoupons(n=50, l=6): Promise<string[]> {
+  // List of allowed characters. Inspired by BASE-58 encoding.
+  const allowedChars = "abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTVWXYZ23456789";
+  const coupons = new Set<string>();
+  for (let i=0; i<n; i++) {
+    let c: string;
+    do {
+      c="";
+      for (let j = 0; j < l; j++) {
+        c += allowedChars[Math.floor(Math.random() * allowedChars.length)];
+      }
+    } while (coupons.has(c));
+    coupons.add(c);
   }
+  return Array.from(coupons.values());
+}
+
+export async function printAccount(hre: typeof import('hardhat'), addr: string) {
+  const balance = hre.ethers.formatEther(await hre.ethers.provider.getBalance(addr));
+  console.log(`Using account ${addr}. Account balance ${balance}`);
 }
 
 export async function deployContract(hre: typeof import('hardhat'),
@@ -40,7 +62,7 @@ export async function addQuestions(quizContract: any, questionsFile: string) {
   for (const question of questions) {
     const tx = await quizContract.addQuestion(question.question, question.choices);
     const receipt = await tx.wait();
-    console.log(`Added question: ${question.question}. Transaction hash: ${receipt!.hash}`);
+    console.log(`Adding question: ${question.question}\n  Transaction hash: ${receipt!.hash}`);
   }
 }
 
@@ -50,7 +72,7 @@ export async function addCoupons(quizContract: any, couponsFile: string) {
     const chunk = coupons.slice(i, i + 20);
     const tx = await quizContract.addCoupons(chunk);
     const receipt = await tx.wait();
-    console.log(`Added coupons: ${chunk}. Transaction hash: ${receipt!.hash}`);
+    console.log(`Adding coupons: ${chunk}\n  Transaction hash: ${receipt!.hash}`);
   }
 }
 
@@ -58,7 +80,7 @@ export async function setNativeReward(hre: typeof import('hardhat'), quizContrac
   const { ethers } = hre;
   const tx = await quizContract.setPayoutReward(ethers.parseEther(reward));
   const receipt = await tx.wait();
-  console.log(`Set reward to ${reward} ROSE. Transaction hash: ${receipt!.hash}`);
+  console.log(`Setting reward to ${reward} ROSE\n  Transaction hash: ${receipt!.hash}`);
 }
 
 
@@ -83,7 +105,7 @@ export async function setNftAddress(hre: typeof import('hardhat'), contract: any
 export async function storeNFT(hre: typeof import('hardhat'), quiz: any, jsonMetadata: string) {
   console.log(`Storing NFT with metadata: ${jsonMetadata}`);
   console.log(`NFT address: ${await quiz.nftAddress()}`);
-  
+
   const nft = await hre.ethers.getContractAt('NftReward', await quiz.nftAddress());
   if ((await nft.tokenURIs(hre.ethers.keccak256(hre.ethers.toUtf8Bytes(jsonMetadata)))).length > 0) {
     console.log(`NFT already stored. Ignoring.`);
@@ -94,28 +116,20 @@ export async function storeNFT(hre: typeof import('hardhat'), quiz: any, jsonMet
   console.log(`NFT stored.`);
 }
 
-export async function fundContract(hre: typeof import('hardhat'), quizContract: any, amount: string) {
+export async function fundAccount(hre: typeof import('hardhat'), account: any, amount: string) {
   const { ethers } = hre;
   const tx = await (await ethers.getSigners())[0].sendTransaction({
-    to: await quizContract.getAddress(),
+    to: account,
     value: ethers.parseEther(amount),
   });
   const receipt = await tx.wait();
-  console.log(`Funded contract with ${amount} ROSE. Transaction hash: ${receipt!.hash}`);
+  console.log(`Funding account ${account} with ${amount} ROSE\n  Transaction hash: ${receipt!.hash}`);
 }
 
-export async function fundGaslessAccount(hre: typeof import('hardhat'), gaslessAddress: string, amount: string) {
+export async function setGaslessKeyPair(hre: typeof import('hardhat'), quizContract: any, payerSecret: string, nonce: number) {
   const { ethers } = hre;
-  const tx = await (await ethers.getSigners())[0].sendTransaction({
-    to: gaslessAddress,
-    value: ethers.parseEther(amount),
-  });
-  const receipt = await tx.wait();
-  console.log(`Funded gasless account with ${amount} ROSE. Transaction hash: ${receipt!.hash}`);
-}
-
-export async function setGaslessKeyPair(quizContract: any, payerAddress: string, payerSecret: string, nonce: number) {
+  const payerAddress = ethers.computeAddress(payerSecret);
   const tx = await quizContract.setGaslessKeyPair(payerAddress, payerSecret, nonce);
   const receipt = await tx.wait();
-  console.log(`Set gasless keypair. Transaction hash: ${receipt!.hash}`);
+  console.log(`Setting gasless payer ${payerAddress}\n  Transaction hash: ${receipt!.hash}`);
 }
