@@ -30,7 +30,7 @@ onMounted(async () => {
   <section>
     <p class="text-white">
       Dobrodošli na Oasisovem blockchain kvizu!🌹<br/><br/>
-      Kviz je namenjen tekmovalcem ACM UPM, da spoznajo čudovito tehnologijo
+      Kviz je namenjen tekmovalcem ACM RTK, da spoznajo čudovito tehnologijo
       veriženja blokov (<i>blockchain</i>). ⛓ Verjetno ste že slišali za bitcoin in
       Ethereum, obstajajo pa tudi druge verige. Ena takih je
       <a href="https://oasisprotocol.org/sapphire" target="_blank">Oasis Sapphire</a>, ki omogoča
@@ -62,7 +62,7 @@ onMounted(async () => {
 
     <p class="text-white mt-5">
       Po uspešno opravljenem kvizu si lahko <a href="https://metamask.io/download/" target="_blank">ustvariš novo kriptodenarnico</a>,
-      na katero boš prejel nagrado v znesku <b>100 ROSE</b> na omrežju
+      na katero boš prejel nagrado v znesku <b>200 ROSE</b> na omrežju
       <a href="https://docs.oasis.io/build/sapphire/network#rpc-endpoints" target="_blank">Oasis Sapphire</a>.<br/><br/>
       Svoj programerski talent nato lahko preizkusiš v
       <a href="https://docs.oasis.io/build/sapphire/quickstart" target="_blank">
@@ -70,10 +70,9 @@ onMounted(async () => {
       žetončki pa aplikacijo tudi objaviš! 🔨 Morda najdeš
       navdih na našem igrišču <a href="https://playground.oasis.io/" target="_blank">Oasis Playground</a>.💡 <br/><br/>
       Lahko pa kovančke le "držiš" in upaš, da v prihodnosti zrastejo. 🤑 Morda
-      jih zamenjaš za <a href="https://illuminex.xyz" target="_blank">druge kriptokovance</a>?
+      jih zamenjaš za <a href="https://neby.exchange" target="_blank">druge kriptokovance</a>?
       Ali pa svoje prijatelje pogostiš s kakavom v bižnjem
-      <a href="https://map.bitcoin.com/" target="_blank">kriptolokalu</a> ☕. Morda odideš
-      <a href="https://www.tus.si/" target="_blank">po nakupih</a>? 🛒<br/><br/>
+      <a href="https://btcmap.org" target="_blank">kriptolokalu</a>. ☕<br/><br/>
       Preden odhitiš reševat kviz, te vabimo, da se pridružiš skupnosti
       slovenskih Oasis razvijalcev na
       <a href="https://oasis.io/discord" target="_blank">Discord kanalu #slovenia 🇸🇮 </a>.

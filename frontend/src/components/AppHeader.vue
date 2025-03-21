@@ -13,8 +13,8 @@
             alt="Oasis logo"
           />
         </RouterLink>
-        <a href="https://tekmovanja.acm.si/?q=upm">
-          <img src="@/assets/images/upm-logo.png" class="h-6 sm:h-9" alt="UPM logo" />
+        <a href="https://tekmovanja.acm.si/?q=rtk">
+          <img src="@/assets/images/rtk-logo.svg" class="h-6 sm:h-9" alt="RTK logo" />
         </a>
       </div>
     </nav>
