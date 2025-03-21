@@ -417,7 +417,7 @@ onMounted(async () => {
     <section>
       <p class="text-white text-base mb-5 mt-10">
         Če želite prejeti nagrado, v spodnje polje vpišite naslov vaše kriptodenarnice.
-        Kovančke ROSE boste prejeli na verigi <a href="https://docs.oasis.io/dapp/sapphire/#chain-information" target="_blank">Oasis Sapphire Mainnet</a>.
+        Kovančke ROSE boste prejeli na verigi <a href="https://docs.oasis.io/build/sapphire" target="_blank">Oasis Sapphire Mainnet</a>.
       </p>
       <form @submit="claimReward">
         <div class="form-group">
@@ -452,7 +452,7 @@ onMounted(async () => {
             denarnice <a href="https://metamask.io/download/" target="_blank">Metamask</a>.
             Po namestitvi ne pozabite povezati denarnice z omrežjem Oasis Sapphire. To
             najlažje storite s pritiskom na enega od gumbov "Add to Metamask" v seznamu
-            <a href="https://docs.oasis.io/dapp/sapphire/#rpc-endpoints" target="_blank">dostopnih točk Mainnet</a>.
+            <a href="https://docs.oasis.io/build/sapphire/network#rpc-endpoints" target="_blank">dostopnih točk Mainnet</a>.
           </p>
         </details>
         <AppButton
@@ -508,7 +508,7 @@ onMounted(async () => {
         </AppButton>
       </section>
       <p class="text-white">
-        Vabljeni, da sprogramirate <a href="https://docs.oasis.io/dapp/sapphire/quickstart" target="_blank">aplikacijo na omrežju Oasis Sapphire.</a>
+        Vabljeni, da sprogramirate <a href="https://docs.oasis.io/build/sapphire/quickstart" target="_blank">aplikacijo na omrežju Oasis Sapphire.</a>
       </p>
       <p class="text-white">
         <br/>
