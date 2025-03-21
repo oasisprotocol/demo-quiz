@@ -448,9 +448,9 @@ onMounted(async () => {
           class="mb-20 no-capitalize"
           type="submit"
           variant="primary"
-          :disabled="isAddingReward"
+          :disabled="isClaimingReward"
         >
-          <span class="normal-case" v-if="isAddingReward"
+          <span class="normal-case" v-if="isClaimingReward"
             >Generating transaction and sending reward…</span
           >
           <span class="normal-case" v-else>Claim your reward</span>
