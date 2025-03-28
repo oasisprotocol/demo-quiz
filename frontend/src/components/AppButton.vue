@@ -6,6 +6,7 @@
       'btn-primary': variant === 'primary',
       'btn-secondary': variant === 'secondary',
       'btn-tertiary': variant === 'tertiary',
+      'btn-metamask': variant === 'metamask',
       'btn-danger': variant === 'danger',
       'btn-choice': variant === 'choice',
       'btn-small': size === 'small',
@@ -17,7 +18,7 @@
 
 <script setup lang="ts">
 defineProps<{
-  variant: "primary" | "secondary" | "danger" | "choice" | "tertiary";
+  variant: "primary" | "secondary" | "danger" | "choice" | "tertiary" | "metamask";
   size?: "default" | "small";
 }>();
 </script>
@@ -76,5 +77,17 @@ defineProps<{
 
 .btn-choice:disabled {
   @apply border-gray-400 text-gray-400;
+}
+
+.btn-metamask {
+  @apply bg-primary text-white border-white;
+  border-width: 1px;
+  font-size: 0.9rem;
+  line-height: 1.75rem;
+  padding: 0.5rem 1rem;
+}
+
+.btn-metamask:hover {
+  @apply bg-secondary text-black border-black;
 }
 </style>

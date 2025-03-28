@@ -30,7 +30,7 @@ textarea {
 
 button {
     font-family: Azeret Mono, sans-serif;
-    color: black !important;
+    color: black;
 }
 
 fieldset button {
