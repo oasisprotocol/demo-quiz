@@ -9,6 +9,7 @@ module.exports = {
         primaryDark: "#000062",
         mediumDark: "#565b61",
         primaryMedium: "#3ec8ff",
+        primaryRoyal: "#0500e1",
       },
     },
   },

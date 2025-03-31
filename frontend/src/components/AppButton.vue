@@ -25,7 +25,7 @@ defineProps<{
 
 <style scoped lang="postcss">
 .btn {
-  @apply font-normal text-lg py-3 px-8 capitalize;
+  @apply font-normal text-lg px-8 py-2 capitalize;
 }
 
 .btn-small {
@@ -37,8 +37,7 @@ defineProps<{
 }
 
 .btn-primary {
-  @apply bg-secondary text-black border-black;
-  border-width: 3px;
+  @apply bg-secondary text-black border-black border text-sm leading-7;
 }
 
 .btn-secondary {
@@ -80,11 +79,7 @@ defineProps<{
 }
 
 .btn-metamask {
-  @apply bg-primary text-white border-white;
-  border-width: 1px;
-  font-size: 0.9rem;
-  line-height: 1.75rem;
-  padding: 0.5rem 1rem;
+  @apply bg-primary text-white border-white px-4 py-2 border text-sm leading-7;
 }
 
 .btn-metamask:hover {

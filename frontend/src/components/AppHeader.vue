@@ -36,8 +36,8 @@ function addSapphireToMetaMask() {
 </script>
 
 <template>
-  <header class="">
-    <nav class="bg-primaryMedium border-gray-200 p-2 xl:py-4 xl:px-0">
+  <header>
+    <nav class="bg-primaryMedium border p-2 xl:py-4 xl:px-0 ">
       <div class="flex flex-wrap justify-between items-center mx-0 md:mx-10">
         <RouterLink to="/">
           <img src="@/assets/logo.svg" class="h-6 sm:h-9" alt="Oasis logo" />
