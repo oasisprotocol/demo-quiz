@@ -25,7 +25,7 @@ defineProps<{
 
 <style scoped lang="postcss">
 .btn {
-  @apply font-normal text-lg px-8 py-2 capitalize;
+  @apply font-normal text-lg px-8 py-2 capitalize tracking-[0.025em];
 }
 
 .btn-small {

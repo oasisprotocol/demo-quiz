@@ -29,7 +29,7 @@ onMounted(async () => {
 <template>
   <section>
     <h1
-      class="text-white text-center font-['Azeret_Mono'] text-2xl md:text-3xl mb-5 leading-snug max-w-md m-auto"
+      class="text-white text-center font-['Roboto_Mono'] text-2xl md:text-3xl mb-5 leading-snug max-w-md m-auto tracking-wider"
     >
       Welcome to the Oasis blockchain quiz!🌹
     </h1>
