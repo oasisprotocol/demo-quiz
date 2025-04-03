@@ -4,7 +4,7 @@ import AppButton from "@/components/AppButton.vue";
 function addSapphireToMetaMask() {
   if (!window.ethereum?.request) {
     return alert(
-      "Have you installed MetaMask yet? If not, please do so.\n\nComputer: Once it is installed, you will be able to add the Sapphire ParaTime to your MetaMask.\n\nPhone: Open the website through your MetaMask Browser to add the Sapphire ParaTime."
+      "Have you installed MetaMask yet? If not, please do so.\n\nComputer: Once it is installed, you will be able to add the Sapphire network to your MetaMask.\n\nPhone: Open the website through your MetaMask Browser to add the Sapphire network."
     );
   }
 
