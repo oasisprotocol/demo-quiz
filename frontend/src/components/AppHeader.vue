@@ -8,21 +8,25 @@ function addSapphireToMetaMask() {
     );
   }
 
+  const expectedChainId = import.meta.env.VITE_NETWORK!;
+  const rpcUrl = import.meta.env.VITE_WEB3_GATEWAY!;
+  const chainName = import.meta.env.VITE_CHAIN_NAME!;
+
   const startTime = Date.now();
   window.ethereum
     .request({
       method: "wallet_addEthereumChain",
       params: [
         {
-          chainId: "0x5afe",
-          chainName: "Oasis Sapphire",
+          chainId: expectedChainId,
+          chainName: chainName,
           nativeCurrency: {
             name: "ROSE",
             symbol: "ROSE",
             decimals: 18,
           },
-          rpcUrls: ["https://sapphire.oasis.io/", "wss://sapphire.oasis.io/ws"],
-          blockExplorerUrls: ["https://explorer.oasis.io/mainnet/sapphire"],
+          rpcUrls: [rpcUrl],
+          blockExplorerUrls: [],
         },
       ],
     })
