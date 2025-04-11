@@ -4,6 +4,7 @@ import { createApp } from "vue";
 import App from "./App.vue";
 import "./assets/main.css";
 import router from "./router";
+import "@fontsource/roboto-mono";
 
 const app = createApp(App);
 

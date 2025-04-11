@@ -16,11 +16,11 @@ input {
 
 .form-group input,
 textarea {
-    @apply block py-6 px-5 w-full text-base text-black appearance-none focus:outline-none focus:ring-0 bg-white;
+    @apply block py-2 px-4 w-full text-base text-black appearance-none focus:outline-none focus:ring-0 bg-white;
 }
 
 .form-group label {
-    @apply absolute text-base text-primaryDark duration-300 transform -translate-y-5 scale-75 top-6 z-10 origin-[0] left-5;
+    @apply absolute top-[0.55rem] left-4 text-base text-primaryDark duration-300 transform -translate-y-8 scale-75 z-10 origin-[0];
 }
 
 .message {
@@ -29,8 +29,8 @@ textarea {
 }
 
 button {
-    font-family: Azeret Mono, sans-serif;
-    color: black !important;
+    font-family: Roboto Mono, sans-serif;
+    color: black;
 }
 
 fieldset button {

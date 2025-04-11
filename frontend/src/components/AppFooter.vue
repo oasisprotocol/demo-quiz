@@ -1,9 +1,11 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+const currentYear = new Date().getFullYear();
+</script>
 
 <template>
-  <footer class="">
+  <footer class="text-xs w-full absolute bottom-5 px-8">
     <p class="text-white text-center">
-      Copyright © 2024
+      Copyright © {{ currentYear }}
       <a href="https://oasisprotocol.org" target="_blank"
         >Oasis Protocol Foundation</a
       >. Licensed under

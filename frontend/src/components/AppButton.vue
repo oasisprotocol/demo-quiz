@@ -6,6 +6,7 @@
       'btn-primary': variant === 'primary',
       'btn-secondary': variant === 'secondary',
       'btn-tertiary': variant === 'tertiary',
+      'btn-metamask': variant === 'metamask',
       'btn-danger': variant === 'danger',
       'btn-choice': variant === 'choice',
       'btn-small': size === 'small',
@@ -17,14 +18,14 @@
 
 <script setup lang="ts">
 defineProps<{
-  variant: "primary" | "secondary" | "danger" | "choice" | "tertiary";
+  variant: "primary" | "secondary" | "danger" | "choice" | "tertiary" | "metamask";
   size?: "default" | "small";
 }>();
 </script>
 
 <style scoped lang="postcss">
 .btn {
-  @apply font-normal text-lg py-3 px-8 capitalize;
+  @apply font-normal text-lg px-8 py-2 capitalize tracking-[0.025em];
 }
 
 .btn-small {
@@ -36,8 +37,7 @@ defineProps<{
 }
 
 .btn-primary {
-  @apply bg-secondary text-black border-black;
-  border-width: 3px;
+  @apply bg-secondary text-black border-black border text-sm leading-7;
 }
 
 .btn-secondary {
@@ -76,5 +76,13 @@ defineProps<{
 
 .btn-choice:disabled {
   @apply border-gray-400 text-gray-400;
+}
+
+.btn-metamask {
+  @apply bg-primary text-white border-white px-4 py-2 border text-sm leading-7;
+}
+
+.btn-metamask:hover {
+  @apply bg-secondary text-black border-black;
 }
 </style>

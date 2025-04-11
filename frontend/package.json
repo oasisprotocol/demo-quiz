@@ -17,6 +17,7 @@
     "format": "npm-run-all format:**"
   },
   "dependencies": {
+    "@fontsource/roboto-mono": "^5.2.5",
     "@metamask/detect-provider": "^2.0.0",
     "@metamask/jazzicon": "^2.0.0",
     "@oasisprotocol/demo-quiz-backend": "workspace:^",
