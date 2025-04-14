@@ -49,7 +49,7 @@ function addSapphireToMetaMask() {
           <img src="@/assets/logo.svg" class="h-6 sm:h-9" alt="Oasis logo" />
         </RouterLink>
         <AppButton variant="metamask" @click="addSapphireToMetaMask"
-          >{{ $t("add_sapphire") }}
+          >{{ t("add_sapphire") }}
         </AppButton>
       </div>
     </nav>

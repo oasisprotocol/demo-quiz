@@ -32,7 +32,7 @@ onMounted(async () => {
     <h1
       class="text-white text-center font-['Roboto_Mono'] text-2xl md:text-3xl mb-5 leading-snug max-w-md m-auto tracking-wider"
     >
-      {{ $t("greeting") }}
+      {{ t("greeting") }}
     </h1>
     <p class="text-white text-center mb-7" v-html="t('quiz_intro')"></p>
     <div class="form-group">
@@ -49,7 +49,7 @@ onMounted(async () => {
         for="couponText"
         class="peer-focus:text-primaryDark peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-8 peer-focus:text-white"
       >
-        {{ $t("enter_coupon") }}
+        {{ t("enter_coupon") }}
         <span class="text-red-500">*</span>
       </label>
     </div>
@@ -61,7 +61,7 @@ onMounted(async () => {
       <AppButton
         variant="primary"
         class="m-auto hover:text-white hover:bg-primaryRoyal hover:border-white"
-        >{{ $t("confirm") }}</AppButton
+        >{{ t("confirm") }}</AppButton
       >
     </RouterLink>
 

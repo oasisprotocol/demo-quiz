@@ -390,7 +390,7 @@ onMounted(async () => {
           v-if="errors.length > 0"
           class="text-red-500 px-3 mt-5 rounded-xl-sm"
         >
-          <span class="font-bold">{{ $t("error") }}</span>
+          <span class="font-bold">{{ t("error") }}</span>
           <div v-for="error in errors" :key="error">{{ error }}</div>
         </div>
         <div class="flex justify-between items-start mt-6 mb-20">
@@ -400,8 +400,8 @@ onMounted(async () => {
             :disabled="isLoading || !allQuestionsAnswered"
             @click="checkAnswers"
           >
-            <span v-if="isCheckingAnswers">{{ $t("checking_answers") }}</span>
-            <span v-else>{{ $t("check_answers") }}</span>
+            <span v-if="isCheckingAnswers">{{ t("checking_answers") }}</span>
+            <span v-else>{{ t("check_answers") }}</span>
           </AppButton>
         </div>
       </form>
@@ -412,7 +412,7 @@ onMounted(async () => {
   <section class="pt-5" v-if="answersCorrect && !rewardClaimed">
     <SuccessInfo>
       <h2 class="text-2xl text-white text-base mb-5 mt-10">
-        {{ $t("quiz_solved") }}
+        {{ t("quiz_solved") }}
       </h2>
     </SuccessInfo>
 
@@ -436,7 +436,7 @@ onMounted(async () => {
             for="addressText"
             class="peer-focus:text-primaryDark peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-5"
           >
-            {{ $t("your_address") }}
+            {{ t("your_address") }}
             <span class="text-red-500">*</span>
           </label>
         </div>
@@ -447,9 +447,9 @@ onMounted(async () => {
           :disabled="isClaimingReward"
         >
           <span class="normal-case" v-if="isClaimingReward"
-            >{{ $t("generating_transaction") }}</span
+            >{{ t("generating_transaction") }}</span
           >
-          <span class="normal-case" v-else>{{ $t("claim_reward") }}</span>
+          <span class="normal-case" v-else>{{ t("claim_reward") }}</span>
         </AppButton>
       </form>
     </section>
@@ -458,7 +458,7 @@ onMounted(async () => {
     <SuccessInfo class="mb-20">
       <section v-if=" addrNFT !== '0x0000000000000000000000000000000000000000'">
         <h2 class="text-white text-3xl mb-10">
-          {{ $t("reward_nft") }}
+          {{ t("reward_nft") }}
         </h2>
         <div class="featured-container">
         <img
@@ -471,14 +471,14 @@ onMounted(async () => {
         />
         </div>
         <p class="text-white">
-          {{ $t("token_id") }} <strong>{{ tokenId }}</strong>
+          {{ t("token_id") }} <strong>{{ tokenId }}</strong>
         </p>
         <p class="text-white mb-10">
-          {{ $t("nft_contract_address") }} <strong>{{ addrNFT }}</strong>
+          {{ t("nft_contract_address") }} <strong>{{ addrNFT }}</strong>
         </p>
       </section>
 
-      <h3 class="text-white text-3xl mb-10">{{ $t("reward_claimed") }}</h3>
+      <h3 class="text-white text-3xl mb-10">{{ t("reward_claimed") }}</h3>
       <section v-if=" addrNFT !== '0x0000000000000000000000000000000000000000'">
         <AppButton
           class="mb-20 no-capitalize"
@@ -487,9 +487,9 @@ onMounted(async () => {
           @click="addNFTToMetaMask"
         >
           <span class="normal-case" v-if="isAddingReward"
-            >{{ $t("nft_to_metmask") }}</span
+            >{{ t("nft_to_metmask") }}</span
           >
-          <span class="normal-case" v-else>{{ $t("reward_to_wallet") }}</span>
+          <span class="normal-case" v-else>{{ t("reward_to_wallet") }}</span>
         </AppButton>
       </section>
       <p class="text-white" v-html="t('reward.quickstart')"></p>
