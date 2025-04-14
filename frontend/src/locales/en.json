@@ -1,1 +1,27 @@
-{}
+{
+    "greeting": "Welcome to the Oasis blockchain quiz! 🌹",
+    "quiz_intro": "You probably know everything about the bitcoin and the Ethereum blockchains, but there are also other chains out there such as <a href='https://oasis.net' target='_blank'>Oasis Network</a>! ⛓ This quiz runs on Oasis Sapphire inside a <b>confidential smart contract</b>, and verifies your answers completely on-chain. 🔒",
+    "enter_coupon": "Enter your coupon:",
+    "confirm": "Confirm",
+    "reward_note": "When you solve the quiz, you will receive a <b>1 ROSE</b> reward! You can use the tokens to <a href='https://docs.oasis.io/dapp/sapphire/quickstart' target='_blank'>develop a dApp</a> 🔨 and deploy it on the sapphire-testnet. If you don't have an idea for your dApp, perhaps you will find inspiration by checking out our <a href='https://playground.oasis.io/' target='_blank'>playground</a> 💡.<br /><br />Of course, you can also exchange it for other tokens on a <a href='https://illuminex.xyz' target='_blank'>DEX</a>. Maybe get you and your friends a <s>beer</s> hot chocolate in the nearby <a href='https://map.bitcoin.com/' target='_blank'>crypto pub</a>? ☕<br /><br />In either case, join us on <a href='https://oasis.io/discord' target='_blank'>Discord</a>. You will find a lot of interesting answers there. Good luck! 😉",
+    "add_sapphire": "Add Sapphire to Metamask",
+    "discord_contact": "Problems, questions, compliments?<br />Contact us on <a href='https://oasis.io/discord' target='_blank'>Discord</a>! 🎉",
+    "copyright": "Copyright © {year} <a href='https://oasisprotocol.org' target='_blank'>Oasis Protocol Foundation</a>. Licensed under <a href='https://www.apache.org/licenses/LICENSE-2.0' target='_blank'>Apache 2.0</a>.",
+    "not_found": "Page not found",
+    "error": "Error:",
+    "checking_answers": "Checking answers...",
+    "check_answers": "Check my answers",
+    "quiz_solved": "You Solved the Quiz!",
+    "reward_claim": "To claim the reward, enter your account address below. You will receive it on the <a href='https://docs.oasis.io/dapp/sapphire/#chain-information' target='_blank'>Oasis Sapphire Testnet</a> chain.",
+    "your_address": "Your address (0x...):" ,
+    "generating_transaction": "Generating transaction and sending reward…",
+    "claim_reward": "Claim your reward",
+    "reward_nft": "Congratulations, you received an NFT:",
+    "token_id": "Token ID:",
+    "nft_contract_address": "NFT Contract Address:",
+    "reward_claimed": "Reward claimed!",
+    "nft_to_metmask": "Adding NFT to MetaMask...",
+    "reward_to_wallet": "Add reward to wallet",
+    "reward_quickstart": "Check out our <a href='https://docs.oasis.io/dapp/sapphire/quickstart' target='_blank'>Oasis Sapphire quickstart</a> and start building!",
+    "reward_help": "If you need help, contact us on the Oasis <a href='https://oasis.io/discord' target='_blank'>#dev-central Discord channel</a>."
+}
