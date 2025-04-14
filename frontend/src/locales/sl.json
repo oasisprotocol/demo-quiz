@@ -1,1 +1,27 @@
-{}
+{
+    "greeting": "Dobrodošli na Oasisovem blockchain kvizu!🌹",
+    "quiz_intro": "⛓ Verjetno ste že slišali za bitcoin in Ethereum, obstajajo pa tudi druge verige. Ena takih je <a href='https://oasis.net/sapphire' target='_blank'>Oasis Sapphire</a>, ki omogoča <b>tajno izvajanje programov in šifrirano hrambo podatkov</b>. 🔒 Tudi ta kviz ima shranjena vsa vprašanja in odgovore izključno na blockchainu!",
+    "enter_coupon": "Vnesite vaš kupon:",
+    "confirm": "Potrdi",
+    "reward_note": "Po uspešno opravljenem kvizu si lahko <a href='https://metamask.io/download/' target='_blank'>ustvariš novo kriptodenarnico</a>, na katero boš prejel nagrado v znesku <b>1 ROSE</b> na omrežju <a href='https://docs.oasis.io/build/sapphire/network#rpc-endpoints' target='_blank'>Oasis Sapphire</a>.<br/><br/>Svoj programerski talent nato lahko preizkusiš v <a href='https://docs.oasis.io/build/sapphire/quickstart' target='_blank'>programiranju blockchain aplikacij (<i>dApps</i>)</a>, z dobljenimi žetončki pa aplikacijo tudi objaviš! 🔨 Morda najdeš navdih na našem igrišču <a href='https://playground.oasis.io/' target='_blank'>Oasis Playground</a>.💡<br/><br/>Lahko pa kovančke le 'držiš' in upaš, da v prihodnosti zrastejo. 🤑 Morda jih zamenjaš za <a href='https://neby.exchange' target='_blank'>druge kriptokovance</a>? Ali pa svoje prijatelje pogostiš s kakavom v bižnjem <a href='https://btcmap.org' target='_blank'>kriptolokalu</a>. ☕<br/><br/>Preden odhitiš reševat kviz, te vabimo, da se pridružiš skupnosti slovenskih Oasis razvijalcev na <a href='https://oasis.io/discord' target='_blank'>Discord kanalu #slovenia 🇸🇮</a>. Z veseljem ti bomo priskočili na pomoč. 🆘<br/><br/>Veliko sreče pri reševanju!",
+    "add_sapphire": "Dodaj Sapphire na Metamask",
+    "discord_contact": "Težave, vprašanja, pohvale?<br/> Obiščite <a href='https://oasis.io/discord' target='_blank'>Discord kanal #slovenia 🇸🇮 </a>",
+    "copyright": "Copyright © {year} <a href='https://oasisprotocol.org' target='_blank'>Oasis Protocol Foundation</a> pod licenčnimi pogoji <a href='https://www.apache.org/licenses/LICENSE-2.0' target='_blank'>Apache 2.0</a>.<br/>Izvorna koda kviza je prostodostopna na <a href='https://github.com/oasisprotocol/demo-quiz'>GitHubu</a>.",
+    "not_found": "Strani ni mogoče najti",
+    "error": "Napaka:",
+    "checking_answers": "Preverjam odgovore…",
+    "check_answers": "Preveri odgovore",
+    "quiz_solved": "Kviz ste uspešno rešili!",
+    "reward_claim": "Če želite prejeti nagrado, v spodnje polje vpišite naslov vaše kriptodenarnice. Kovančke ROSE boste prejeli na verigi <a href='https://docs.oasis.io/dapp/sapphire/#chain-information' target='_blank'>Oasis Sapphire Testnet</a>.",
+    "your_address": "Vaš naslov (0x...):" ,
+    "generating_transaction": "Generiram transakcijo in pošiljam nagrado…",
+    "claim_reward": "Prejmi nagrado",
+    "reward_nft": "Čestitke, prejeli ste NFT:",
+    "token_id": "ID žetona:",
+    "nft_contract_address": "Naslov NFT pogodbe:",
+    "reward_claimed": "Nagrada prevzeta!",
+    "nft_to_metmask": "Dodajanje NFT-ja v MetaMask...",
+    "reward_to_wallet": "Dodaj nagrado v denarnico",
+    "reward_quickstart": " Vabljeni, da sprogramirate <a href='https://docs.oasis.io/build/sapphire/quickstart' target='_blank'>aplikacijo na omrežju Oasis Sapphire.</a>",
+    "reward_help": "Če potrebujete pomoč ali pa želite svoje znanje deliti ostalim, se pridružite slovenski skupnosti Oasis na <a href='https://oasis.io/discord' target='_blank'>Discord kanalu #slovenia 🇸🇮 </a>."
+}

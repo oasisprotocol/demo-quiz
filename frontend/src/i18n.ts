@@ -1,4 +1,3 @@
-// src/i18n.ts
 import { createI18n } from "vue-i18n";
 
 import en from "./locales/en.json";
@@ -6,7 +5,7 @@ import sl from "./locales/sl.json";
 
 const i18n = createI18n({
   legacy: false,
-  locale: "en",
+  locale: navigator.language,
   fallbackLocale: "en",
   messages: {
     en,
