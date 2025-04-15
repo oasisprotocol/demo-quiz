@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import AppButton from "@/components/AppButton.vue";
+import { useI18n } from "vue-i18n";
+const { t } = useI18n();
 
 function addSapphireToMetaMask() {
   if (!window.ethereum?.request) {
@@ -41,21 +43,20 @@ function addSapphireToMetaMask() {
 
 <template>
   <header>
-    <nav class="bg-primaryMedium border p-2 xl:py-4 xl:px-0 ">
+    <nav class="bg-primaryMedium border p-2 xl:py-4 xl:px-0">
       <div class="flex flex-wrap justify-between items-center mx-0 md:mx-10">
         <RouterLink to="/">
           <img src="@/assets/logo.svg" class="h-6 sm:h-9" alt="Oasis logo" />
         </RouterLink>
         <AppButton variant="metamask" @click="addSapphireToMetaMask"
-          >Add Sapphire to Metamask
+          >{{ t("add_sapphire") }}
         </AppButton>
       </div>
     </nav>
-    <p class="text-white text-right text-sm mt-3 mr-4 md:mr-12">
-      Problems, questions, compliments?<br />
-      Contact us on
-      <a href="https://oasis.io/discord" target="_blank">Discord</a>! 🎉
-    </p>
+    <p
+      class="text-white text-right text-sm mt-3 mr-4 md:mr-12"
+      v-html="t('discord_contact')"
+    ></p>
   </header>
 </template>
 

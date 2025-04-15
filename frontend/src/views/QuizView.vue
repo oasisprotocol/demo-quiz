@@ -9,9 +9,11 @@ import SuccessInfo from "@/components/SuccessInfo.vue";
 import CheckedIcon from "@/components/CheckedIcon.vue";
 import UncheckedIcon from "@/components/UncheckedIcon.vue";
 import QuizDetailsLoader from "@/components/QuizDetailsLoader.vue";
+import { useI18n } from "vue-i18n";
 // import { token } from "@oasisprotocol/demo-quiz-backend/lib/cjs/typechain-types/@openzeppelin/contracts";
 console.log("Debug: QuizView");
 const props = defineProps<{ coupon: string }>();
+const { t } = useI18n();
 
 const quiz = useQuiz();
 const eth = useEthereumStore();
@@ -388,7 +390,7 @@ onMounted(async () => {
           v-if="errors.length > 0"
           class="text-red-500 px-3 mt-5 rounded-xl-sm"
         >
-          <span class="font-bold">Error:</span>
+          <span class="font-bold">{{ t("error") }}</span>
           <div v-for="error in errors" :key="error">{{ error }}</div>
         </div>
         <div class="flex justify-between items-start mt-6 mb-20">
@@ -398,8 +400,8 @@ onMounted(async () => {
             :disabled="isLoading || !allQuestionsAnswered"
             @click="checkAnswers"
           >
-            <span v-if="isCheckingAnswers">Checking answers…</span>
-            <span v-else>Check my answers</span>
+            <span v-if="isCheckingAnswers">{{ t("checking_answers") }}</span>
+            <span v-else>{{ t("check_answers") }}</span>
           </AppButton>
         </div>
       </form>
@@ -410,21 +412,15 @@ onMounted(async () => {
   <section class="pt-5" v-if="answersCorrect && !rewardClaimed">
     <SuccessInfo>
       <h2 class="text-2xl text-white text-base mb-5 mt-10">
-        You Solved the Quiz!
+        {{ t("quiz_solved") }}
       </h2>
     </SuccessInfo>
 
     <section>
-      <p class="text-white text-base mb-5 mt-10">
-        To claim the reward, enter your account address below. You will receive
-        it on the
-        <a
-          href="https://docs.oasis.io/dapp/sapphire/#chain-information"
-          target="_blank"
-          >Oasis Sapphire Testnet</a
-        >
-        chain.
-      </p>
+      <p
+  class="text-white text-base mb-5 mt-10"
+  v-html="t('reward.instructions')"
+></p>
       <form @submit="claimReward">
         <div class="form-group">
           <input
@@ -440,7 +436,7 @@ onMounted(async () => {
             for="addressText"
             class="peer-focus:text-primaryDark peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-5"
           >
-            Your address (0x...):
+            {{ t("your_address") }}
             <span class="text-red-500">*</span>
           </label>
         </div>
@@ -451,9 +447,9 @@ onMounted(async () => {
           :disabled="isClaimingReward"
         >
           <span class="normal-case" v-if="isClaimingReward"
-            >Generating transaction and sending reward…</span
+            >{{ t("generating_transaction") }}</span
           >
-          <span class="normal-case" v-else>Claim your reward</span>
+          <span class="normal-case" v-else>{{ t("claim_reward") }}</span>
         </AppButton>
       </form>
     </section>
@@ -462,7 +458,7 @@ onMounted(async () => {
     <SuccessInfo class="mb-20">
       <section v-if=" addrNFT !== '0x0000000000000000000000000000000000000000'">
         <h2 class="text-white text-3xl mb-10">
-        Congratulations, you received an NFT:
+          {{ t("reward_nft") }}
         </h2>
         <div class="featured-container">
         <img
@@ -475,14 +471,14 @@ onMounted(async () => {
         />
         </div>
         <p class="text-white">
-          Token ID: <strong>{{ tokenId }}</strong>
+          {{ t("token_id") }} <strong>{{ tokenId }}</strong>
         </p>
         <p class="text-white mb-10">
-          NFT Contract Address: <strong>{{ addrNFT }}</strong>
+          {{ t("nft_contract_address") }} <strong>{{ addrNFT }}</strong>
         </p>
       </section>
 
-      <h3 class="text-white text-3xl mb-10">Reward claimed!</h3>
+      <h3 class="text-white text-3xl mb-10">{{ t("reward_claimed") }}</h3>
       <section v-if=" addrNFT !== '0x0000000000000000000000000000000000000000'">
         <AppButton
           class="mb-20 no-capitalize"
@@ -491,24 +487,13 @@ onMounted(async () => {
           @click="addNFTToMetaMask"
         >
           <span class="normal-case" v-if="isAddingReward"
-            >Adding NFT to MetaMask...</span
+            >{{ t("nft_to_metmask") }}</span
           >
-          <span class="normal-case" v-else>Add reward to wallet</span>
+          <span class="normal-case" v-else>{{ t("reward_to_wallet") }}</span>
         </AppButton>
       </section>
-      <p class="text-white">
-        Check out our
-        <a href="https://docs.oasis.io/dapp/sapphire/quickstart" target="_blank"
-          >Oasis Sapphire quickstart</a
-        >
-        and start building!
-      </p>
-      <p class="text-white">
-        If you need help, contact us on the Oasis
-        <a href="https://oasis.io/discord" target="_blank"
-          >#dev-central Discord channel</a
-        >.
-      </p>
+      <p class="text-white" v-html="t('reward.quickstart')"></p>
+      <p class="text-white" v-html="t('reward.help')"></p>
     </SuccessInfo>
   </section>
 </template>
