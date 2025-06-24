@@ -217,12 +217,18 @@ task('addCoupons')
 
 // Generate unique coupons suitable for the coupons file.
 task('genCoupons')
-  .addPositionalParam('n', 'number of coupons')
-  .addPositionalParam('l', 'length of each coupon')
+  .addPositionalParam('n', 'number of coupons', '100')
+  .addPositionalParam('l', 'length of each coupon', '8')
+  .addPositionalParam('o', 'output file', '')
   .setAction(async (args, hre) => {
     const coupons = await genCoupons(args.n, args.l);
-    for (let i=0; i<coupons.length; i++) {
-      console.log(coupons[i]);
+
+    // Write coupons to output file if specified
+    if (args.o) {
+      await promises.writeFile(args.o, coupons.join('\n'), 'utf8');
+      console.log(`Generated ${args.n} coupons of length ${args.l} and saved to ${args.o}`);
+    } else {
+      console.log(coupons.join('\n'))
     }
   });
 
