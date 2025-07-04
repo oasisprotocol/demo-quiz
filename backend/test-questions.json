@@ -1,7 +1,7 @@
 [
   {
     "question": "What year did Satoshi Nakamoto publish the bitcoin whitepaper?",
-    "choices": ["2009", "2000", "2008", "2013"]
+    "choices": ["2008", "2000", "2009", "2013"]
   },
   {
     "question": "What is bitcoin?",
@@ -62,5 +62,14 @@
       "0b00110010010010001011100100100010111010100101010011010110101010",
       "L1bdCJ1nZXxdHNWwDw8hVuQoqgZEue1kVtPE1SWXRwbJxQkfRTvT"
     ]
+  },
+  {
+    "question": "What is rofl.app?",
+    "choices": [
+      "A hub where dApp builders, privacy-aware users and infra providers meet and trade",
+      "A crypto exchange for trading ROFL token pairs",
+      "A social media platform for sharing blockchain jokes"
+    ]
   }
+ 
 ]
