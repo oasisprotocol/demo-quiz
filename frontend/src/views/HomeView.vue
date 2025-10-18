@@ -30,7 +30,7 @@ onMounted(async () => {
   <section>
     <p class="text-white">
       Dobrodošli na Oasisovem blockchain kvizu!🌹<br/><br/>
-      Kviz je namenjen tekmovalcem ACM RTK, da spoznajo čudovito tehnologijo
+      Kviz je namenjen tekmovalcem ACM UPM, da spoznajo čudovito tehnologijo
       veriženja blokov (<i>blockchain</i>). ⛓ Verjetno ste že slišali za bitcoin in
       Ethereum, obstajajo pa tudi druge verige. Ena takih je
       <a href="https://oasisprotocol.org/sapphire" target="_blank">Oasis Sapphire</a>, ki omogoča
@@ -62,10 +62,10 @@ onMounted(async () => {
 
     <p class="text-white mt-5">
       Po uspešno opravljenem kvizu si lahko <a href="https://metamask.io/download/" target="_blank">ustvariš novo kriptodenarnico</a>,
-      na katero boš prejel nagrado v znesku <b>200 ROSE</b> na omrežju
+      na katero boš prejel nagrado v znesku <b>300 ROSE</b> na omrežju
       <a href="https://docs.oasis.io/build/sapphire/network#rpc-endpoints" target="_blank">Oasis Sapphire</a>.<br/><br/>
       Svoj programerski talent nato lahko preizkusiš v
-      <a href="https://docs.oasis.io/build/sapphire/quickstart" target="_blank">
+      <a href="https://docs.oasis.io/build" target="_blank">
       programiranju blockchain aplikacij (<i>dApps</i>)</a>, z dobljenimi
       žetončki pa aplikacijo tudi objaviš! 🔨 Morda najdeš
       navdih na našem igrišču <a href="https://playground.oasis.io/" target="_blank">Oasis Playground</a>.💡 <br/><br/>
