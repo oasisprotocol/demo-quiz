@@ -67,10 +67,9 @@ contract Quiz {
 
     error OnlyOwnerCanCallFunction(address caller);
     error InvalidCoupon(string coupon);
-    error InvalidNumberOfAnswersError(uint256 provided, uint256 expected);
-    error InvalidCouponError(string coupon);
-    error PayoutFailedError();
-    error ZeroAddressError(address owner);
+    error InvalidNumberOfAnswers(uint256 provided, uint256 expected);
+    error PayoutFailed();
+    error ZeroAddress(address owner);
 
     modifier onlyOwner() {
         if (!(msg.sender == _owner)) {
@@ -308,7 +307,7 @@ contract Quiz {
         address payoutAddr
     ) external view validCoupon(coupon) returns (bool[] memory, bytes memory) {
         if (answers.length != _questions.length) {
-            revert InvalidNumberOfAnswersError(
+            revert InvalidNumberOfAnswers(
                 answers.length,
                 _questions.length
             );
@@ -370,7 +369,7 @@ contract Quiz {
 
         // Check coupon validity.
         if (_coupons[pc.coupon] != COUPON_VALID) {
-            revert InvalidCouponError(pc.coupon);
+            revert InvalidCoupon(pc.coupon);
         }
 
         // If nft address is set and , mint NFT
@@ -381,7 +380,7 @@ contract Quiz {
         if (payoutReward > 0) {
             (bool success, ) = pc.addr.call{value: payoutReward}("");
             if (!success) {
-                revert PayoutFailedError();
+                revert PayoutFailed();
             }
         }
 
@@ -418,7 +417,7 @@ contract Quiz {
     function reclaimFunds(address addr) external onlyOwner {
         (bool success, ) = addr.call{value: address(this).balance}("");
         if (!success) {
-            revert PayoutFailedError();
+            revert PayoutFailed();
         }
     }
 
