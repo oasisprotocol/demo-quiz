@@ -14,22 +14,39 @@ async function deployQuiz() {
   return { quiz };
 }
 
+const QUESTION_FIXTURES = [
+  [
+    "What's the European highest peak?",
+    [
+      "Mont Blanc",
+      "Triglav",
+      "Mount Everest",
+      "Saint Moritz",
+      "Sv. Jošt nad Kranjem",
+    ],
+  ],
+  [
+    "When was the Bitcoin whitepaper published?",
+    ["2009", "2000", "2006", "2012", "2014", "2023"],
+  ],
+] as const;
+
+function sortQuestionsAnswers(questions: any): any {
+  // Sort questions by question text and sort answers within each question.
+  // Useful for tests that involve on-chain randomization.
+  return [...questions]
+    .sort((a, b) => {
+      const questionA = a[0];
+      const questionB = b[0];
+      return questionA.localeCompare(questionB);
+    })
+    .map((q) => [q[0], [...q[1]].sort()]);
+}
+
 async function addQuestions(quiz: Quiz) {
-  await quiz.addQuestion("What's the European highest peak?", [
-    "Mont Blanc",
-    "Triglav",
-    "Mount Everest",
-    "Saint Moritz",
-    "Sv. Jošt nad Kranjem",
-  ]);
-  await quiz.addQuestion("When was the Bitcoin whitepaper published?", [
-    "2009",
-    "2000",
-    "2006",
-    "2012",
-    "2014",
-    "2023",
-  ]);
+  for (const q of QUESTION_FIXTURES) {
+    await quiz.addQuestion(q[0], q[1]);
+  }
 }
 
 async function addOneQuestion(quiz: Quiz) {
@@ -85,28 +102,20 @@ describe("Quiz", function () {
     const { quiz } = await deployQuiz();
     await addCoupons(quiz);
 
-    // Check coupons.
-    expect(await quiz.countCoupons()).to.deep.equal([2n, 2n]);
-    expect(await quiz.getCoupons()).to.deep.equal([
-      ["testCoupon1", "testCoupon2"],
-      [await quiz.COUPON_VALID(), await quiz.COUPON_VALID()],
-    ]);
+    // Should not revert.
+    expect(await quiz.getQuestions("testCoupon1")).to.have.lengthOf(0);
+    expect(await quiz.getQuestions("testCoupon2")).to.have.lengthOf(0);
 
     // Invalidate coupon.
     await quiz.removeCoupon("testCoupon1");
-    expect(await quiz.countCoupons()).to.deep.equal([1n, 2n]);
-    expect(await quiz.getCoupons()).to.deep.equal([
-      ["testCoupon1", "testCoupon2"],
-      [await quiz.COUPON_REMOVED(), await quiz.COUPON_VALID()],
-    ]);
+    const userQuiz = quiz.connect((await ethers.getSigners())[1]); // Calling from owner will always assume a coupon as valid, impersonate another user.
+    await expect(userQuiz.getQuestions("testCoupon1")).to.be.revertedWithCustomError(quiz, "InvalidCoupon");
+    expect(await quiz.getQuestions("testCoupon2")).to.have.lengthOf(0);
 
     // Re-enable coupon.
     await quiz.addCoupons(["testCoupon1"]);
-    expect(await quiz.countCoupons()).to.deep.equal([2n, 2n]);
-    expect(await quiz.getCoupons()).to.deep.equal([
-      ["testCoupon1", "testCoupon2"],
-      [await quiz.COUPON_VALID(), await quiz.COUPON_VALID()],
-    ]);
+    expect(await quiz.getQuestions("testCoupon1")).to.have.lengthOf(0);
+    expect(await quiz.getQuestions("testCoupon2")).to.have.lengthOf(0);
   });
 
   it("Should add questions", async function () {
@@ -114,57 +123,26 @@ describe("Quiz", function () {
     await addCoupons(quiz);
     await addQuestions(quiz);
 
-    expect(await quiz.getQuestions("testCoupon1")).to.deep.equal([
-      [
-        "What's the European highest peak?",
-        [
-          "Mont Blanc",
-          "Triglav",
-          "Mount Everest",
-          "Saint Moritz",
-          "Sv. Jošt nad Kranjem",
-        ],
-      ],
-      [
-        "When was the Bitcoin whitepaper published?",
-        ["2009", "2000", "2006", "2012", "2014", "2023"],
-      ],
-    ]);
+    expect(
+      sortQuestionsAnswers(await quiz.getQuestions("testCoupon1"))
+    ).to.deep.equal(sortQuestionsAnswers(QUESTION_FIXTURES));
 
     await quiz.clearQuestions();
     expect(await quiz.getQuestions("testCoupon1")).to.deep.equal([]);
 
     await addQuestions(quiz);
-    expect(await quiz.getQuestions("testCoupon1")).to.deep.equal([
-      [
-        "What's the European highest peak?",
-        [
-          "Mont Blanc",
-          "Triglav",
-          "Mount Everest",
-          "Saint Moritz",
-          "Sv. Jošt nad Kranjem",
-        ],
-      ],
-      [
-        "When was the Bitcoin whitepaper published?",
-        ["2009", "2000", "2006", "2012", "2014", "2023"],
-      ],
-    ]);
+    expect(
+      sortQuestionsAnswers(await quiz.getQuestions("testCoupon1"))
+    ).to.deep.equal(sortQuestionsAnswers(QUESTION_FIXTURES));
   });
 
   it("User should get questions", async function () {
-    if ((await ethers.provider.getNetwork()).chainId != BigInt(1337)) {
-      // https://github.com/oasisprotocol/sapphire-paratime/issues/197
-      this.skip();
-    }
-
     const { quiz } = await deployQuiz();
     await addQuestions(quiz);
     await addCoupons(quiz);
 
     const userQuiz = quiz.connect((await ethers.getSigners())[1]);
-    //expect(userQuiz.getQuestions("invalidCoupon")).to.be.revertedWith("Invalid coupon");
+    await expect(userQuiz.getQuestions("invalidCoupon")).to.be.revertedWithCustomError(quiz, "InvalidCoupon");
     expect(await userQuiz.getQuestions("testCoupon1")).to.have.lengthOf(2);
   });
 
@@ -187,7 +165,7 @@ describe("Quiz", function () {
     expect(await quiz.payoutReward()).to.equal(0);
     await setReward(quiz);
     expect(await quiz.payoutReward()).to.equal(10_000_000_000_000_000_000n);
-    expect(await quiz.payoutReward() > 0).to.equal(true);
+    expect((await quiz.payoutReward()) > 0).to.equal(true);
   });
 
   it("Should reclaim funds", async function () {
