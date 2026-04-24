@@ -80,22 +80,21 @@ describe("NftReward", function () {
     [owner, addr1] = await ethers.getSigners();
     const { nftReward } = await deployNFT();
     const { quiz } = await deployQuiz();
-    await expect(nftReward.mint(addr1.address, 
-      ethers.encodeBytes32String("JSON"))).to.be.reverted; 
+    await expect(
+      nftReward.mint(addr1.address, ethers.encodeBytes32String("JSON"))
+    ).to.be.reverted;
 
     await nftReward.addAllowMint(owner.address);
     await nftReward.mint(addr1.address, ethers.encodeBytes32String("JSON"));
     await nftReward.removeAllowMint(owner.address);
 
-    await expect(await nftReward.mint(addr1.address, 
-      ethers.encodeBytes32String("JSON"))).to.be
-      .reverted; //revertedWith("Address not allowed");
+    await expect(
+      await nftReward.mint(addr1.address, ethers.encodeBytes32String("JSON"))
+    ).to.be.reverted; //revertedWith("Address not allowed");
 
     await nftReward.addAllowMint(await quiz.getAddress());
     await nftReward.addAllowMint(owner.address);
-    await nftReward.addAllowMint(
-      "0xDce075E1C39b1ae0b75D554558b6451A226ffe00"
-    );
+    await nftReward.addAllowMint("0xDce075E1C39b1ae0b75D554558b6451A226ffe00");
     await addOneQuestion(quiz);
     await addCoupons(quiz);
     await setReward(quiz);

@@ -32,9 +32,9 @@ contract NftReward is ERC721Enumerable {
 
     error OnlyOwnerCanCallFunction(address caller);
     error AddressNotAllowed(address caller);
-    error IncorrectImageError(string base64Encoded);
-    error TokenNotExistError(uint256 tokenId);
-    error ZeroAddressError(address owner);
+    error IncorrectImage(string base64Encoded);
+    error TokenNotExist(uint256 tokenId);
+    error ZeroAddress(address owner);
 
     modifier onlyOwner() {
         if (msg.sender != _owner) {
@@ -94,14 +94,14 @@ contract NftReward is ERC721Enumerable {
         address owner
     ) public view returns (uint256[] memory) {
         if (owner == address(0)) {
-            revert ZeroAddressError(owner);
+            revert ZeroAddress(owner);
         }
         return _ownedTokens[owner];
     }
 
     function tokenURI(uint256 id) public view override returns (string memory) {
         if (!_exists(id)) {
-            revert TokenNotExistError(id);
+            revert TokenNotExist(id);
         }
         // If the tokenURI is not set, return empty string
         if (bytes(tokenURIs[_tokenURIHashes[id]]).length == 0) {
